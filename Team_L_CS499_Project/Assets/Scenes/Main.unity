@@ -2349,6 +2349,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   TwoDMode: 0
+  CamSpeed: 0.15
 --- !u!1 &1001091191
 GameObject:
   m_ObjectHideFlags: 0
