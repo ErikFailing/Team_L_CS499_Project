@@ -21,9 +21,17 @@ public class GUI : MonoBehaviour
     }
 
     // General GUI methods
-
-
+    public void BackButtonClick()
+    { 
+        
+    }
     
+    public void HelpButtonClick()
+    {
+
+    }
+
+
 
 
     public void TwoDButtonClick()
@@ -41,12 +49,40 @@ public class GUI : MonoBehaviour
     }
     
     
-    
-    
-    
-    
-    
+
     // House Planner GUI Methods
+    
+
+    public void DrawRoomButtonClick()
+    {
+
+    }
+
+    public void FloorTypeDropdownValueChanged()
+    {
+
+    }
+
+    public void PlaceTableButtonClick()
+    {
+
+    }
+
+    public void PlaceChestButtonClick()
+    {
+
+    }
+
+    public void PlaceVacuumButtonClick()
+    {
+
+    }
+
+    public void FinalizeDesignButtonClick()
+    {
+
+    }
+
 
 
 
