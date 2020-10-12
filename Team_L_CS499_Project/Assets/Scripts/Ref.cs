@@ -26,4 +26,9 @@ public class Ref : MonoBehaviour
     public GameObject Camera;
     public GameObject TwoDButton;
     public GameObject ThreeDButton;
+    public GameObject MainMenu;
+    public GameObject MainHelpOverlay;
+    public GameObject HousePlannerMenu;
+    public GameObject HousePlannerHelpOverlay;
+    public GameObject LoadSimulationMenu;
 }

@@ -22,13 +22,40 @@ public class GUI : MonoBehaviour
 
     // General GUI methods
     public void BackButtonClick()
-    { 
-        
+    {
+        // Can be used by any menu's back button
+        if (Ref.I.HousePlannerMenu.activeInHierarchy)
+        {
+            Ref.I.HousePlannerMenu.SetActive(false);
+            Ref.I.MainMenu.SetActive(true);
+        }
     }
     
     public void HelpButtonClick()
     {
-
+        // Can be used by any menu's help button
+        if (Ref.I.HousePlannerMenu.activeInHierarchy)
+        {
+            if (Ref.I.HousePlannerHelpOverlay.activeInHierarchy)
+            {
+                Ref.I.HousePlannerHelpOverlay.SetActive(false);
+            }
+            else
+            {
+                Ref.I.HousePlannerHelpOverlay.SetActive(true);
+            }
+        }
+        else if (Ref.I.MainMenu.activeInHierarchy)
+        {
+            if (Ref.I.MainHelpOverlay.activeInHierarchy)
+            {
+                Ref.I.MainHelpOverlay.SetActive(false);
+            }
+            else
+            {
+                Ref.I.MainHelpOverlay.SetActive(true);
+            }
+        }
     }
 
 
@@ -49,6 +76,35 @@ public class GUI : MonoBehaviour
     }
     
     
+    // Main Menu GUI Methods
+
+    public void HousePlannerButtonClick()
+    {
+        // Close help overlay if necessary
+        if (Ref.I.MainHelpOverlay.activeInHierarchy)
+        {
+            Ref.I.MainHelpOverlay.SetActive(false);
+        }
+        Ref.I.MainMenu.SetActive(false);
+        Ref.I.HousePlannerMenu.SetActive(true);
+    }
+
+    public void LoadSimulationButtonClick()
+    {
+        // Close help overlay if necessary
+        if (Ref.I.MainHelpOverlay.activeInHierarchy)
+        {
+            Ref.I.MainHelpOverlay.SetActive(false);
+        }
+        Ref.I.MainMenu.SetActive(false);
+        Ref.I.LoadSimulationMenu.SetActive(true);
+    }
+
+    public void QuitButtonClick()
+    {
+        Application.Quit();
+    }
+
 
     // House Planner GUI Methods
     
