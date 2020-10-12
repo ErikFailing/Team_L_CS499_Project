@@ -16,25 +16,37 @@ public class CameraControl : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        // Verticle & horizontal movement
+        // Horizontal movement
         if (Input.GetAxis("Horizontal") > 0) { transform.position += transform.right * CamSpeed; }
         else if (Input.GetAxis("Horizontal") < 0) { transform.position -= transform.right * CamSpeed; }
-        if (Input.GetAxis("Vertical") > 0) { transform.position += transform.up * CamSpeed; }
-        else if (Input.GetAxis("Vertical") < 0) { transform.position -= transform.up * CamSpeed; }
+        
 
 
 
         if (TwoDMode)
         {
+            // 2-D Vertical movement
+            if (Input.GetAxis("Vertical") > 0) { transform.position += transform.up * CamSpeed; }
+            else if (Input.GetAxis("Vertical") < 0) { transform.position -= transform.up * CamSpeed; }
+
             // Zoom
-            if (Input.GetAxis("Zoom") > 0) { GetComponent<Camera>().orthographicSize -= CamSpeed * 3; }
-            else if (Input.GetAxis("Zoom") < 0) { GetComponent<Camera>().orthographicSize += CamSpeed * 3; }
+            if (Input.GetAxis("Zoom") > 0)
+            {
+                GetComponent<Camera>().orthographicSize =
+                    Mathf.Clamp(GetComponent<Camera>().orthographicSize - CamSpeed * 3, 1, 50);
+            }
+            else if (Input.GetAxis("Zoom") < 0) 
+            { 
+                GetComponent<Camera>().orthographicSize = 
+                    Mathf.Clamp(GetComponent<Camera>().orthographicSize + CamSpeed * 3, 1, 50); 
+            }
+            
         }
         else 
         {
-            // Zoom
-            if (Input.GetAxis("Zoom") > 0) { transform.position += transform.forward * CamSpeed * 8; }
-            else if (Input.GetAxis("Zoom") < 0) { transform.position -= transform.forward * CamSpeed * 8; }
+            // 3-D Zoom/Vertical movement
+            if (Input.GetAxis("Vertical") > 0) { transform.position += transform.forward * CamSpeed; }
+            else if (Input.GetAxis("Vertical") < 0) { transform.position -= transform.forward * CamSpeed; }
 
             // Rotation
             if (Input.GetAxis("Rotate") > 0) 
@@ -49,6 +61,9 @@ public class CameraControl : MonoBehaviour
             }
         }
 
+        //Ensure camera never goes below a certain y level
+        transform.position = new Vector3(transform.position.x, 
+            Mathf.Clamp(transform.position.y, 1, 100), transform.position.z);
 
     }
 
