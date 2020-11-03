@@ -79,8 +79,6 @@ public class GUI : MonoBehaviour
         {
             o.GetComponent<Button>().interactable = true;
         }
-        // Ref.I.TwoDButton.GetComponent<Button>().interactable = false;
-        // Ref.I.ThreeDButton.GetComponent<Button>().interactable = true;
         Ref.I.Camera.GetComponent<CameraControl>().SwapCameraViewTo2D();
     }
 
@@ -94,8 +92,6 @@ public class GUI : MonoBehaviour
         {
             o.GetComponent<Button>().interactable = false;
         }
-        // Ref.I.TwoDButton.GetComponent<Button>().interactable = true;
-        // Ref.I.ThreeDButton.GetComponent<Button>().interactable = false;
         Ref.I.Camera.GetComponent<CameraControl>().SwapCameraViewTo3D();
     }
     
