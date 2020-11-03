@@ -24,11 +24,17 @@ public class Ref : MonoBehaviour
 
     [Header("Refs set before runtime")]
     public GameObject Camera;
-    public GameObject TwoDButton;
-    public GameObject ThreeDButton;
+    public GameObject[] TwoDButtons;
+    public GameObject[] ThreeDButtons;
     public GameObject MainMenu;
     public GameObject MainHelpOverlay;
     public GameObject HousePlannerMenu;
     public GameObject HousePlannerHelpOverlay;
     public GameObject LoadSimulationMenu;
+    public GameObject LoadSimulationHelpOverlay;
+    public GameObject HouseSimulationMenu;
+    public GameObject HouseSimulationHelpOverlay;
+    public GameObject OneSpeedButton;
+    public GameObject FiftySpeedButton;
+    public GameObject HundredSpeedButton;
 }
