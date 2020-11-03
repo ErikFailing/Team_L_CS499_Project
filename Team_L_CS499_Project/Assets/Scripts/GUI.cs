@@ -68,7 +68,6 @@ public class GUI : MonoBehaviour
         }
     }
 
-
     public void TwoDButtonClick()
     {
         foreach (GameObject o in Ref.I.TwoDButtons)
@@ -156,7 +155,8 @@ public class GUI : MonoBehaviour
 
     public void FinalizeDesignButtonClick()
     {
-
+        Ref.I.HousePlannerMenu.SetActive(false);
+        Ref.I.HouseSimulationMenu.SetActive(true);
     }
 
 
@@ -184,5 +184,10 @@ public class GUI : MonoBehaviour
     }
 
 
-
+    // Load Simulation GUI Methods
+    public void LoadSimulation()
+    {
+        Ref.I.LoadSimulationMenu.SetActive(false);
+        Ref.I.HouseSimulationMenu.SetActive(true);
+    }
 }
