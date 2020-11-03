@@ -126,8 +126,6 @@ public class GUI : MonoBehaviour
 
 
     // House Planner GUI Methods
-    
-
     public void DrawRoomButtonClick()
     {
 
@@ -161,6 +159,11 @@ public class GUI : MonoBehaviour
 
 
     // House Simulation GUI Methods
+    public void SaveSimulation()
+    {
+        Ref.I.MainMenu.SetActive(true);
+        Ref.I.HouseSimulationMenu.SetActive(false);
+    }
 
     public void OneSpeedButtonClick()
     {
