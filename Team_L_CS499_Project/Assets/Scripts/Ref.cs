@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 /// <summary>
 /// Ref, short for References, is a script that stores references to commonly accessed scripts and objects
@@ -22,8 +23,8 @@ public class Ref : MonoBehaviour
     }
 
 
-    [Header("Refs set before runtime")]
-    public GameObject Camera;
+    [Header("GUI")]
+    public GUI GUI;
     public GameObject[] TwoDButtons;
     public GameObject[] ThreeDButtons;
     public GameObject MainMenu;
@@ -37,4 +38,22 @@ public class Ref : MonoBehaviour
     public GameObject OneSpeedButton;
     public GameObject FiftySpeedButton;
     public GameObject HundredSpeedButton;
+    public GameObject SquareFeetText;
+
+    [Header("Prefabs")]
+    public GameObject FloorPrefab;
+
+    [Header("Materials")]
+    public Material Hardwood;
+    public Material LoopPileCarpet;
+    public Material CutPileCarpet;
+    public Material FriezeCutPileCarpet;
+
+    [Header("Misc.")]
+    public GameObject Camera;
+    public GameObject SelectionCube;
+    public GameObject Ground;
+    public GameObject Rooms;
+    public Model Model;
+    public ModelVisuals ModelVisuals;
 }
