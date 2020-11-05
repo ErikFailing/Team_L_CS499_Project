@@ -2,18 +2,10 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
 
 public class GUI : MonoBehaviour
 {
-    //
-    
-    
-    
-    
-    
-    
-    
-    
     // Start is called before the first frame update
     void Start()
     {
@@ -128,22 +120,22 @@ public class GUI : MonoBehaviour
     // House Planner GUI Methods
     public void DrawRoomButtonClick()
     {
-
+        Ref.I.ModelVisuals.readyToSelect = true;
     }
 
-    public void FloorTypeDropdownValueChanged()
+    public void FloorTypeDropdownValueChanged(TextMeshProUGUI tmpro)
     {
-
+        Ref.I.Model.ChangeFloorType(tmpro.text);
     }
 
     public void PlaceTableButtonClick()
     {
-
+        
     }
 
     public void PlaceChestButtonClick()
     {
-
+        
     }
 
     public void PlaceVacuumButtonClick()
@@ -155,6 +147,11 @@ public class GUI : MonoBehaviour
     {
         Ref.I.HousePlannerMenu.SetActive(false);
         Ref.I.HouseSimulationMenu.SetActive(true);
+    }
+
+    public void UpdateSquareFootage(int total)
+    {
+        Ref.I.SquareFeetText.GetComponent<TextMeshProUGUI>().text = "Total Square Feet: " + total;
     }
 
 
