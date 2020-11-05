@@ -11740,7 +11740,7 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1421068182}
   m_HandleRect: {fileID: 1421068181}
   m_Direction: 2
-  m_Value: 0.99999994
+  m_Value: 1
   m_Size: 0.3859649
   m_NumberOfSteps: 0
   m_OnValueChanged:
