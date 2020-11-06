@@ -67,7 +67,7 @@ public class CameraControl : MonoBehaviour
     public void SwapCameraViewTo2D()
     {
         // Set position
-        transform.position = new Vector3(-14f, 100, 0);
+        transform.position = new Vector3(-14f, 200, 0);
         // Set rotation
         transform.rotation = Quaternion.Euler(new Vector3(90, 0, 0));
 

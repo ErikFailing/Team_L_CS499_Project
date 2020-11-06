@@ -13,6 +13,7 @@ public class ModelVisuals : MonoBehaviour
     public Color invalidColor;
 
     public Dictionary<Vector4, GameObject> DisplayedRooms;
+    public Dictionary<Vector4, GameObject> DisplayedWalls;
 
     // Start is called before the first frame update
     void Start()
@@ -20,6 +21,7 @@ public class ModelVisuals : MonoBehaviour
         readyToSelect = false;
         selecting = false;
         DisplayedRooms = new Dictionary<Vector4, GameObject>();
+        DisplayedWalls = new Dictionary<Vector4, GameObject>();
         point1 = new Vector3();
         point2 = new Vector3();
 
@@ -87,13 +89,26 @@ public class ModelVisuals : MonoBehaviour
     public void DisplayNewFloor(Vector4 floor)
     {
         // Instantiate, position and scale room floor
-        GameObject go = Instantiate(Ref.I.FloorPrefab, Utility.PosFromRect(floor), new Quaternion(), Ref.I.Rooms.transform);
+        GameObject go = Instantiate(Ref.I.FloorPrefab, Utility.PosFromRect(floor), new Quaternion(), Ref.I.Floors.transform);
         go.transform.localScale = Utility.ScaleFromRect(floor);
         // Set correct floor type
         DisplayFloorType(Ref.I.Model.FlooringType);
         // Walls are 4 inchest thick total (2 inches each room), 108 inches tall and the width of the room
 
         DisplayedRooms.Add(floor, go);
+    }
+
+    public void DisplayNewWall(Vector4 wall)
+    {
+        Vector3 pos = Utility.PosFromRect(wall);
+        pos.y = 54.5f;
+        Vector3 scale = Utility.ScaleFromRect(wall);
+        scale.y = 108;
+        // Instantiate, position and scale room floor
+        GameObject go = Instantiate(Ref.I.WallPrefab, pos, new Quaternion(), Ref.I.Walls.transform);
+        go.transform.localScale = scale;
+
+        DisplayedWalls.Add(wall, go);
     }
 
     public void DestroyDisplayedRoom(Vector4 room)
@@ -133,7 +148,7 @@ public class ModelVisuals : MonoBehaviour
             newMaterial = Ref.I.FriezeCutPileCarpet;
         }
 
-        foreach (MeshRenderer floor in Ref.I.Rooms.transform.GetComponentsInChildren<MeshRenderer>())
+        foreach (MeshRenderer floor in Ref.I.Floors.transform.GetComponentsInChildren<MeshRenderer>())
         {
             floor.material = newMaterial;
         }

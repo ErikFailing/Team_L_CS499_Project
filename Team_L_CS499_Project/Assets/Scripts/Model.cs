@@ -29,7 +29,7 @@ public class Model : MonoBehaviour
     public void AddWall(Vector4 wall)
     {
         InnerWalls.Add(wall);
-        //Ref.I.ModelVisuals.
+        Ref.I.ModelVisuals.DisplayNewWall(wall);
     }
     
     public void AddRoom(Vector4 room)
@@ -40,6 +40,12 @@ public class Model : MonoBehaviour
         // Add InnerWalls
         // North
         AddWall(new Vector4(room.x, room.y, room.z, room.y-2));
+        // South
+        AddWall(new Vector4(room.x, room.w+2, room.z, room.w));
+        // West
+        AddWall(new Vector4(room.x, room.y, room.x+2, room.w));
+        // East
+        AddWall(new Vector4(room.z-2, room.y, room.z, room.w));
 
         Ref.I.ModelVisuals.DisplayNewFloor(room);
         CalculateTotalSquareFeet();
