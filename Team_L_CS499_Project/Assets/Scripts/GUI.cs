@@ -120,6 +120,8 @@ public class GUI : MonoBehaviour
     // House Planner GUI Methods
     public void DrawRoomButtonClick()
     {
+        
+        Ref.I.ModelVisuals.objectToPlace = "Room";
         Ref.I.ModelVisuals.readyToSelect = true;
     }
 
@@ -131,15 +133,24 @@ public class GUI : MonoBehaviour
     public void PlaceTableButtonClick()
     {
         
+        Ref.I.ModelVisuals.objectToPlace = "Table";
+        Ref.I.ModelVisuals.readyToSelect = true;
+
     }
 
     public void PlaceChestButtonClick()
     {
         
+        Ref.I.ModelVisuals.objectToPlace = "Chest";
+        Ref.I.ModelVisuals.readyToSelect = true;
+
     }
 
     public void PlaceVacuumButtonClick()
     {
+        
+        Ref.I.ModelVisuals.objectToPlace = "Vacuum";
+        Ref.I.ModelVisuals.readyToSelect = true;
 
     }
 

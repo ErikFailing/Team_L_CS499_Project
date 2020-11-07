@@ -659,6 +659,8 @@ MonoBehaviour:
     type: 3}
   WallPrefab: {fileID: 2004406069834685306, guid: 2fddc039037513f408cc27abc711eb57,
     type: 3}
+  TablePrefab: {fileID: 3519261848551012651, guid: 4025ebfe5a0d0f348bcde3dc9a42d7b4,
+    type: 3}
   Hardwood: {fileID: 2100000, guid: 62698efdae477da4c92a9e5758a5e457, type: 2}
   LoopPileCarpet: {fileID: 2100000, guid: adcb541222019fc4bad94d2a975f68ee, type: 2}
   CutPileCarpet: {fileID: 2100000, guid: b99ff84f3a55aa747a3938e752a31dc1, type: 2}
@@ -668,6 +670,8 @@ MonoBehaviour:
   Ground: {fileID: 1228232794}
   Floors: {fileID: 584843103}
   Walls: {fileID: 84785772}
+  Tabletops: {fileID: 589318731}
+  Tablelegs: {fileID: 1661939286}
   Model: {fileID: 532818928}
   ModelVisuals: {fileID: 532818927}
 --- !u!1 &59933499
@@ -1108,7 +1112,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 532818926}
-  m_RootOrder: 1
+  m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &101383177
 GameObject:
@@ -2646,7 +2650,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 532818926}
-  m_RootOrder: 2
+  m_RootOrder: 4
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &273358257
 GameObject:
@@ -5760,6 +5764,8 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 584843104}
+  - {fileID: 1661939287}
+  - {fileID: 589318732}
   - {fileID: 84785773}
   - {fileID: 266842520}
   - {fileID: 1228232798}
@@ -5782,6 +5788,7 @@ MonoBehaviour:
   point2: {x: 0, y: 0, z: 0}
   readyToSelect: 0
   selecting: 0
+  objectToPlace: 
   validColor: {r: 0, g: 0.1359539, b: 1, a: 0.5686275}
   invalidColor: {r: 1, g: 0, b: 0, a: 0.5686275}
 --- !u!114 &532818928
@@ -5800,6 +5807,11 @@ MonoBehaviour:
   FlooringType: Hardwood
   Rooms: []
   InnerWalls: []
+  Tables: []
+  TableLegs: []
+  Chests: []
+  Doors: []
+  VacuumStation: []
 --- !u!1 &555249642
 GameObject:
   m_ObjectHideFlags: 0
@@ -6372,6 +6384,36 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 589105495}
   m_CullTransparentMesh: 0
+--- !u!1 &589318731
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 589318732}
+  m_Layer: 0
+  m_Name: Tabletops
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &589318732
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 589318731}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 532818926}
+  m_RootOrder: 2
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &589509610
 GameObject:
   m_ObjectHideFlags: 0
@@ -7863,7 +7905,18 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 706353231}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 40004416}
+        m_MethodName: PlaceTableButtonClick
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &706353231
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -10639,7 +10692,7 @@ Camera:
   far clip plane: 100000
   field of view: 60
   orthographic: 1
-  orthographic size: 70
+  orthographic size: 140
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
@@ -10682,7 +10735,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   TwoDMode: 0
-  CamSpeed: 1.5
+  CamSpeed: 2.5
 --- !u!1 &1001091191
 GameObject:
   m_ObjectHideFlags: 0
@@ -13370,10 +13423,10 @@ Transform:
   m_GameObject: {fileID: 1228232794}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: -0.51, z: 0}
-  m_LocalScale: {x: 2400, y: 1, z: 2400}
+  m_LocalScale: {x: 4800, y: 1, z: 4800}
   m_Children: []
   m_Father: {fileID: 532818926}
-  m_RootOrder: 3
+  m_RootOrder: 5
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1253554284
 GameObject:
@@ -17076,6 +17129,36 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1636232759}
   m_CullTransparentMesh: 0
+--- !u!1 &1661939286
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1661939287}
+  m_Layer: 0
+  m_Name: Tablelegs
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1661939287
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1661939286}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 532818926}
+  m_RootOrder: 1
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1664956276
 GameObject:
   m_ObjectHideFlags: 0
