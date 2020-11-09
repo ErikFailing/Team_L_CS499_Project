@@ -358,6 +358,30 @@ public class Model : MonoBehaviour
         {
             RemoveDoor(door);
         }
+        toRemove = new List<Vector4>();
+        foreach (Vector4 chest in Chests)
+        {
+            if (RectanglesOverlap(floor, chest))
+            {
+                toRemove.Add(chest);
+            }
+        }
+        foreach (Vector4 chest in toRemove)
+        {
+            RemoveChest(chest);
+        }
+        toRemove = new List<Vector4>();
+        foreach (Vector4 table in Tables)
+        {
+            if (RectanglesOverlap(floor, table))
+            {
+                toRemove.Add(table);
+            }
+        }
+        foreach (Vector4 table in toRemove)
+        {
+            RemoveTable(table);
+        }
         // Fix remaining walls by... *shrug*
         // Can just refresh all walls using currently existing doors
         // or can do some complicated math to figure it out
@@ -421,8 +445,37 @@ public class Model : MonoBehaviour
         }
     }
 
+    public Vector4 FindObjectRect(Vector2 p)
+    {
+        foreach (Vector4 rect in Tables)
+        {
+            if (RectangleContainsPoint(rect, p))
+            {
+                return rect;
+            }
+        }
+        foreach (Vector4 rect in Chests)
+        {
+            if (RectangleContainsPoint(rect, p))
+            {
+                
+                return rect;
+            }
+        }
+        foreach (Vector4 rect in Rooms)
+        {
+            if (RectangleContainsPoint(rect, p))
+            {
+                return rect;
+            }
+        }
+        return new Vector4(0,0,0,0);
+    }
 
-    
+
+
+
+
 
     static bool RectangleContainsPoint(Vector4 r, Vector2 p)
     {

@@ -50,17 +50,39 @@ public class ModelVisuals : MonoBehaviour
             // Mouse is NOT over GUI element
             if (!EventSystem.current.IsPointerOverGameObject())
             {
-                /*// Cast hit ray to world
+                // Cast hit ray to world
                 Vector3 p = Utility.RoundToNearest(Utility.CastRayToWorld(0.5f, Utility.GetWorldBounds()), 2);
-                GameObject objectToDelete = Ref.I.Model.FindObjectToDelete(new Vector2(p.x, p.z));
-                // Position selection cube on what is hit
-                if (objectToDelete != null)
+                Vector4 objectRect = Ref.I.Model.FindObjectRect(new Vector2(p.x, p.z));
+                if (objectRect != new Vector4(0,0,0,0))
                 {
                     Ref.I.SelectionCube.SetActive(true);
-                    Ref.I.SelectionCube.transform.position = objectToDelete.transform.position;
-                    Ref.I.SelectionCube.transform.localScale = objectToDelete.transform.localScale * 1.01f;
+                    if (DisplayedTabletops.ContainsKey(objectRect))
+                    {
+                        Vector3 pos = DisplayedTabletops[objectRect].transform.position;
+                        pos.y = 15;
+                        Vector3 scale = DisplayedTabletops[objectRect].transform.localScale * 1.001f;
+                        scale.y = 34.1f;
+                        Ref.I.SelectionCube.transform.position = pos;
+                        Ref.I.SelectionCube.transform.localScale = scale;
+                    }
+                    else if (DisplayedChests.ContainsKey(objectRect))
+                    {
+                        Vector3 pos = DisplayedChests[objectRect].transform.position;
+                        Vector3 scale = DisplayedChests[objectRect].transform.localScale * 1.001f;
+                        Ref.I.SelectionCube.transform.position = pos;
+                        Ref.I.SelectionCube.transform.localScale = scale;
+                    }
+                    else if (DisplayedRooms.ContainsKey(objectRect))
+                    {
+                        Vector3 pos = DisplayedRooms[objectRect].transform.position;
+                        pos.y = 54;
+                        Vector3 scale = DisplayedRooms[objectRect].transform.localScale * 1.001f;
+                        scale.y = 109.1f;
+                        Ref.I.SelectionCube.transform.position = pos;
+                        Ref.I.SelectionCube.transform.localScale = scale;
+                    }
                 }
-                else Ref.I.SelectionCube.SetActive(false);*/
+                else Ref.I.SelectionCube.SetActive(false);
             }
             else Ref.I.SelectionCube.SetActive(false);
             // Mouse down
