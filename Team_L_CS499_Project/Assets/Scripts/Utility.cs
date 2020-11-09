@@ -24,8 +24,21 @@ public static class Utility
     }
 
 
+    public static GameObject CastHitRayToWorld()
+    {
+        // Create a ray from camera position to mouse point
+        Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+        RaycastHit info;
+        if (Physics.Raycast(ray, out info, 100000f))
+        {
+            return info.collider.gameObject;
+        }
+        else return null;
+        
+    }
+
     // Include options for bounds and for rounding
-    public static Vector3 CastRayToWorld(int h, Vector4 bounds)
+    public static Vector3 CastRayToWorld(float h, Vector4 bounds)
     {
         Vector3 point;
         // Create a ray from camera position to mouse point
@@ -125,5 +138,13 @@ public static class Utility
             newRect.w = rect.y;
         }
         return newRect;
+    }
+
+
+    public static Vector4 ObjectToRect(GameObject obj)
+    {
+        Vector3 pos = obj.transform.position;
+        Vector3 scale = obj.transform.localScale;
+        return new Vector4(pos.x - (scale.x / 2), pos.z + (scale.z / 2), pos.x + (scale.x / 2), pos.z - (scale.z / 2));
     }
 }

@@ -120,9 +120,9 @@ public class GUI : MonoBehaviour
     // House Planner GUI Methods
     public void DrawRoomButtonClick()
     {
-        
         Ref.I.ModelVisuals.objectToPlace = "Room";
         Ref.I.ModelVisuals.readyToSelect = true;
+        Ref.I.ModelVisuals.placing = false;
     }
 
     public void FloorTypeDropdownValueChanged(TextMeshProUGUI tmpro)
@@ -135,14 +135,21 @@ public class GUI : MonoBehaviour
         
         Ref.I.ModelVisuals.objectToPlace = "Table";
         Ref.I.ModelVisuals.readyToSelect = true;
-
+        Ref.I.ModelVisuals.placing = false;
     }
 
     public void PlaceChestButtonClick()
     {
-        
         Ref.I.ModelVisuals.objectToPlace = "Chest";
         Ref.I.ModelVisuals.readyToSelect = true;
+        Ref.I.ModelVisuals.placing = false;
+    }
+    public void DrawDoorButtonClick()
+    {
+
+        Ref.I.ModelVisuals.objectToPlace = "Door";
+        Ref.I.ModelVisuals.readyToSelect = true;
+        Ref.I.ModelVisuals.placing = false;
 
     }
 
@@ -150,8 +157,17 @@ public class GUI : MonoBehaviour
     {
         
         Ref.I.ModelVisuals.objectToPlace = "Vacuum";
-        Ref.I.ModelVisuals.readyToSelect = true;
+        Ref.I.ModelVisuals.placing = true;
+        Ref.I.ModelVisuals.readyToSelect = false;
 
+    }
+
+    public void DeleteObjectButtonClick()
+    {
+        Ref.I.ModelVisuals.deleting = true;
+        Ref.I.ModelVisuals.placing = false;
+        Ref.I.ModelVisuals.readyToSelect = false;
+        Ref.I.ModelVisuals.ColorSelectionCube(false);
     }
 
     public void FinalizeDesignButtonClick()
