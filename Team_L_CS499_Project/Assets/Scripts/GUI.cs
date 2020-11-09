@@ -156,6 +156,21 @@ public class GUI : MonoBehaviour
 
 
     // House Simulation GUI Methods
+    public void PlayButtonClick()
+    {
+        Ref.I.Simulation.StartSimulation();
+    }
+
+    public void PauseButtonClick()
+    {
+        Ref.I.Simulation.PauseSimulation();
+    }
+
+    public void StopButtonClick()
+    {
+        Ref.I.Simulation.StopSimulation();
+    }
+
     public void SaveSimulation()
     {
         Ref.I.MainMenu.SetActive(true);
@@ -164,6 +179,7 @@ public class GUI : MonoBehaviour
 
     public void OneSpeedButtonClick()
     {
+        Ref.I.Simulation.ChangeSpeed(1.0f);
         Ref.I.OneSpeedButton.GetComponent<Button>().interactable = false;
         Ref.I.FiftySpeedButton.GetComponent<Button>().interactable = true;
         Ref.I.HundredSpeedButton.GetComponent<Button>().interactable = true;
@@ -171,6 +187,7 @@ public class GUI : MonoBehaviour
 
     public void FiftySpeedButtonClick()
     {
+        Ref.I.Simulation.ChangeSpeed(50.0f);
         Ref.I.OneSpeedButton.GetComponent<Button>().interactable = true;
         Ref.I.FiftySpeedButton.GetComponent<Button>().interactable = false;
         Ref.I.HundredSpeedButton.GetComponent<Button>().interactable = true;
@@ -178,6 +195,7 @@ public class GUI : MonoBehaviour
 
     public void HundredSpeedButtonClick()
     {
+        Ref.I.Simulation.ChangeSpeed(100.0f);
         Ref.I.OneSpeedButton.GetComponent<Button>().interactable = true;
         Ref.I.FiftySpeedButton.GetComponent<Button>().interactable = true;
         Ref.I.HundredSpeedButton.GetComponent<Button>().interactable = false;
