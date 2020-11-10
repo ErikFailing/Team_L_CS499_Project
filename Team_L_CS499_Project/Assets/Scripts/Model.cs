@@ -8,6 +8,11 @@ public class Model : MonoBehaviour
     public string FlooringType;
     public List<Vector4> Rooms;
     public List<Vector4> InnerWalls;
+    public List<Vector4> Tables;
+    public List<Vector4> TableLegs;
+    public List<Vector4> Chests;
+    public List<Vector4> Doors;
+    public List<Vector4> VacuumStation;
 
     public void CalculateTotalSquareFeet()
     {
@@ -29,30 +34,135 @@ public class Model : MonoBehaviour
     public void AddWall(Vector4 wall)
     {
         InnerWalls.Add(wall);
-        //Ref.I.ModelVisuals.
+        Ref.I.ModelVisuals.DisplayNewWall(wall);
     }
     
-    public void AddRoom(Vector4 room)
+    public void AddRoomIfValid(Vector4 room)
     {
-        //Correct Point order
+        // Correct Point order
         room = Utility.CorrectRectPointOrder(room);
-        Rooms.Add(room);
-        // Add InnerWalls
-        // North
-        AddWall(new Vector4(room.x, room.y, room.z, room.y-2));
+        // Add if valid
+        if (NewRoomIsValid(room))
+        {
+            Rooms.Add(room);
+            // Add InnerWalls
+            // North
+            AddWall(new Vector4(room.x, room.y, room.z, room.y - 2));
+            // South
+            AddWall(new Vector4(room.x, room.w + 2, room.z, room.w));
+            // West
+            AddWall(new Vector4(room.x, room.y, room.x + 2, room.w));
+            // East
+            AddWall(new Vector4(room.z - 2, room.y, room.z, room.w));
 
-        Ref.I.ModelVisuals.DisplayNewFloor(room);
-        CalculateTotalSquareFeet();
+            Ref.I.ModelVisuals.DisplayNewFloor(room);
+            CalculateTotalSquareFeet();
+        }
     }
 
-    public void RemoveRoom(Vector4 room)
+    public void AddTableLeg(Vector4 leg)
     {
-        //Correct point order
-        room = Utility.CorrectRectPointOrder(room);
-        Rooms.Remove(room);
-        Ref.I.ModelVisuals.DestroyDisplayedRoom(room);
-        CalculateTotalSquareFeet();
+        TableLegs.Add(leg);
+        Ref.I.ModelVisuals.DisplayNewTableleg(leg);
     }
+
+    public void AddTableIfValid(Vector4 table)
+    {
+        // Correct Point order
+        table = Utility.CorrectRectPointOrder(table);
+        // Add if valid
+        if (NewTableIsValid(table))
+        {
+            Tables.Add(table);
+            Ref.I.ModelVisuals.DisplayNewTabletop(table);
+            // Add table legs
+            // Upper left
+            AddTableLeg(new Vector4(table.x+2, table.y-2, table.x+4, table.y-4));
+            // Upper right
+            AddTableLeg(new Vector4(table.z-4, table.y - 2, table.z-2, table.y - 4));
+            // lower right
+            AddTableLeg(new Vector4(table.z -4, table.w + 4, table.z -2, table.w+2));
+            // lower left
+            AddTableLeg(new Vector4(table.x + 2, table.w + 4, table.x + 4, table.w + 2));
+        }
+    }
+    public void AddChestIfValid(Vector4 chest)
+    {
+        // Correct Point order
+        chest = Utility.CorrectRectPointOrder(chest);
+        // Add if valid
+        if (NewChestIsValid(chest))
+        {
+            Chests.Add(chest);
+            Ref.I.ModelVisuals.DisplayNewChest(chest);
+        }
+    }
+    public void AddDoorIfValid(Vector4 door)
+    {
+        // Correct Point order
+        door = Utility.CorrectRectPointOrder(door);
+        // Add if valid
+        if (NewDoorIsValid(door))
+        {
+            Doors.Add(door);
+            // Find the two overlapping walls
+            List<Vector4> overlappingWalls = new List<Vector4>();
+            foreach (Vector4 wall in InnerWalls)
+            {
+                if (RectanglesOverlap(wall, door))
+                {
+                    overlappingWalls.Add(wall);
+                }
+            }
+            // Split overlapping walls to make a door
+            foreach (Vector4 wall in overlappingWalls)
+            {
+                // Remove wall
+                RemoveWall(wall);
+                // Split wall along sides that don't match
+                // Split along Y axises
+                if (wall.y != door.y && wall.w != door.w)
+                {
+                    if (!(wall.x == door.x && wall.y == door.y))
+                    {
+                        // Create upper wall
+                        AddWall(new Vector4(wall.x, wall.y, wall.z, door.y));
+                    }
+                    if (!(wall.z == door.z && wall.w == door.w))
+                    {
+                        // Create lower wall
+                        AddWall(new Vector4(wall.x, door.w, wall.z, wall.w));
+                    }
+                }
+                else //Split along X axises
+                {
+                    if (!(wall.x == door.x && wall.y == door.y))
+                    {
+                        
+                        // Create right wall
+                        AddWall(new Vector4(door.z, wall.y, wall.z, wall.w));
+                    }
+                    if (!(wall.z == door.z && wall.w == door.w))
+                    {
+                        // Create left wall
+                        AddWall(new Vector4(wall.x, wall.y, door.x, wall.w));
+                    }
+                }
+            }
+        }
+    }
+    public void AddVacuumIfValid(Vector4 vacuum)
+    {
+        // Correct Point order
+        vacuum = Utility.CorrectRectPointOrder(vacuum);
+        if (NewVacuumIsValid(vacuum))
+        {
+            VacuumStation.Add(vacuum);
+            Ref.I.ModelVisuals.DisplayVacuum(vacuum);
+        } 
+    }
+
+    
 
     public bool NewRoomIsValid(Vector4 newRoom)
     {
@@ -86,8 +196,302 @@ public class Model : MonoBehaviour
             return true;
         }
     }
+    public bool NewTableIsValid(Vector4 newTable)
+    {
+        if (!NewHouseObjectIsValid(newTable)) return false;
+        else
+        {
+            // Must be larger than 1 foot by 1 foot
+            if (Mathf.Abs(newTable.x - newTable.z) < 12 || Mathf.Abs(newTable.y - newTable.w) < 12) return false;
+            // Can't be larger than 12 foot by 12 foot
+            if (Mathf.Abs(newTable.x - newTable.z) > 144 || Mathf.Abs(newTable.y - newTable.w) > 144) return false;
+            else return true;
+        }
+    }
+    public bool NewChestIsValid(Vector4 newChest)
+    {
+        if (!NewHouseObjectIsValid(newChest)) return false;
+        else
+        {
+            // Must be larger than 10 inches by 10 inches
+            if (Mathf.Abs(newChest.x - newChest.z) < 10 || Mathf.Abs(newChest.y - newChest.w) < 10) return false;
+            // Can't be larger than 8 foot by 8 foot
+            if (Mathf.Abs(newChest.x - newChest.z) > 96 || Mathf.Abs(newChest.y - newChest.w) > 96) return false;
+            else return true;
+        }
+    }
+    public bool NewDoorIsValid(Vector4 newDoor)
+    {
+        // Overlaps exactly 2 rooms
+        int roomsOverlapped = 0;
+        foreach (Vector4 room in Rooms)
+        {
+            if (RectanglesOverlap(room, newDoor))
+            {
+                roomsOverlapped += 1;
+            }
+        }
+        if (roomsOverlapped != 2) return false;
+        // Overlaps less than 3 walls
+        List<Vector4> overlappingWalls = new List<Vector4>();
+        foreach (Vector4 wall in InnerWalls)
+        {
+            if (RectanglesOverlap(wall, newDoor))
+            {
+                overlappingWalls.Add(wall);
+                if (overlappingWalls.Count > 2) return false;
+            }
+        }
+        // Also make sure door is contained in walls
+        foreach (Vector4 wall in overlappingWalls)
+        {
+            if (!RectangleContainsPoint(wall, new Vector2(newDoor.x, newDoor.y)) &&
+                !RectangleContainsPoint(wall, new Vector2(newDoor.z, newDoor.w)))
+            {
+                return false;
+            }
+        }
+        // Atleast one side has to have a length of 4
+        // This ensures that the door remains confined within the walls
+        if (Mathf.Abs(newDoor.x - newDoor.z) == 4 || Mathf.Abs(newDoor.y - newDoor.w) == 4) return true;
+        else return false;
+
+    }
+    public bool NewVacuumIsValid(Vector4 newVacuum)
+    {
+        newVacuum = Utility.CorrectRectPointOrder(newVacuum);
+        if (VacuumStation.Count > 0) return false;
+        if (!NewHouseObjectIsValid(newVacuum)) return false;
+        return true;
+    }
+    public bool NewHouseObjectIsValid(Vector4 newRect)
+    {
+        // House Object must not overlap a wall, door, chest, table or the vacuum
+        foreach (Vector4 obj in Tables)
+        {
+            if (RectanglesOverlap(obj, newRect)) { return false; }
+        }
+        foreach (Vector4 obj in InnerWalls)
+        {
+            if (RectanglesOverlap(obj, newRect)) { return false; }
+        }
+        /*foreach (Vector4 obj in Doors)
+        {
+            if (RectanglesOverlap(obj, newRect)) { return false; }
+        }*/
+        foreach (Vector4 obj in Chests)
+        {
+            if (RectanglesOverlap(obj, newRect)) { return false; }
+        }
+        foreach (Vector4 obj in VacuumStation)
+        {
+            if (RectanglesOverlap(obj, newRect)) { return false; }
+        }
+        // House object must also be in the confines of the house
+        bool point1InHouse = false;
+        bool point2InHouse = false;
+        foreach (Vector4 room in Rooms)
+        {
+            if (RectangleContainsPoint(room, new Vector2(newRect.x, newRect.y))) point1InHouse = true;
+            if (RectangleContainsPoint(room, new Vector2(newRect.z, newRect.w))) point2InHouse = true;
+        }
+        if (point1InHouse && point2InHouse) return true;
+        else return false;
+    }
+    public void RemoveTable(Vector4 table)
+    {
+        Tables.Remove(table);
+        Ref.I.ModelVisuals.RemoveDisplayedTabletop(table);
+        List<Vector4> toRemove = new List<Vector4>();
+        foreach (Vector4 leg in TableLegs)
+        {
+            if (RectangleOneContainsRectangleTwo(table, leg))
+            {
+                toRemove.Add(leg);
+            }
+        }
+        foreach (Vector4 leg in toRemove)
+        {
+            RemoveTableleg(leg);
+        }
+    }
+    public void RemoveTableleg(Vector4 leg)
+    {
+        TableLegs.Remove(leg);
+        Ref.I.ModelVisuals.RemoveDisplayedTableleg(leg);
+    }
+    public void RemoveChest(Vector4 chest)
+    {
+        Chests.Remove(chest);
+        Ref.I.ModelVisuals.RemoveDisplayedChest(chest);
+    }
+    public void RemoveWall(Vector4 wall)
+    {
+        InnerWalls.Remove(wall);
+        Ref.I.ModelVisuals.RemoveDisplayedWall(wall);
+    }
+    public void RemoveFloor(Vector4 floor)
+    {
+        Rooms.Remove(floor);
+        Ref.I.ModelVisuals.RemoveDisplayedFloor(floor);
+        List<Vector4> toRemove = new List<Vector4>();
+        foreach (Vector4 wall in InnerWalls)
+        {
+            if (RectangleOneContainsRectangleTwo(floor, wall))
+            {
+                toRemove.Add(wall);
+            }
+        }
+        foreach (Vector4 wall in toRemove)
+        {
+            RemoveWall(wall);
+        }
+        toRemove = new List<Vector4>();
+        foreach (Vector4 door in Doors)
+        {
+            if (RectanglesOverlap(floor, door))
+            {
+                toRemove.Add(door);
+            }
+        }
+        foreach (Vector4 door in toRemove)
+        {
+            RemoveDoor(door);
+        }
+        toRemove = new List<Vector4>();
+        foreach (Vector4 chest in Chests)
+        {
+            if (RectanglesOverlap(floor, chest))
+            {
+                toRemove.Add(chest);
+            }
+        }
+        foreach (Vector4 chest in toRemove)
+        {
+            RemoveChest(chest);
+        }
+        toRemove = new List<Vector4>();
+        foreach (Vector4 table in Tables)
+        {
+            if (RectanglesOverlap(floor, table))
+            {
+                toRemove.Add(table);
+            }
+        }
+        foreach (Vector4 table in toRemove)
+        {
+            RemoveTable(table);
+        }
+        // Fix remaining walls by... *shrug*
+        // Can just refresh all walls using currently existing doors
+        // or can do some complicated math to figure it out
+
+        //Remove all walls
+        toRemove = new List<Vector4>(InnerWalls);
+        foreach (Vector4 wall in toRemove)
+        {
+            RemoveWall(wall);
+        }
+        //Re-add walls
+        foreach (Vector4 room in Rooms)
+        {
+            // North
+            AddWall(new Vector4(room.x, room.y, room.z, room.y - 2));
+            // South
+            AddWall(new Vector4(room.x, room.w + 2, room.z, room.w));
+            // West
+            AddWall(new Vector4(room.x, room.y, room.x + 2, room.w));
+            // East
+            AddWall(new Vector4(room.z - 2, room.y, room.z, room.w));
+        }
+        //Re-create doors
+        List<Vector4> tempDoors = new List<Vector4>(Doors);
+        Doors = new List<Vector4>();
+        foreach (Vector4 door in tempDoors)
+        {
+            AddDoorIfValid(door);
+        }
+    }
+    public void RemoveDoor(Vector4 door)
+    {
+        Doors.Remove(door);
+    }
+    
+    public void DeleteObject(Vector2 p)
+    {
+        foreach (Vector4 rect in Tables)
+        {
+            if (RectangleContainsPoint(rect, p))
+            {
+                RemoveTable(rect);
+                return;
+            }
+        }
+        foreach (Vector4 rect in Chests)
+        {
+            if (RectangleContainsPoint(rect, p))
+            {
+                RemoveChest(rect);
+                return;
+            }
+        }
+        foreach (Vector4 rect in Rooms)
+        {
+            if (RectangleContainsPoint(rect, p))
+            {
+                RemoveFloor(rect);
+                return;
+            }
+        }
+    }
+
+    public Vector4 FindObjectRect(Vector2 p)
+    {
+        foreach (Vector4 rect in Tables)
+        {
+            if (RectangleContainsPoint(rect, p))
+            {
+                return rect;
+            }
+        }
+        foreach (Vector4 rect in Chests)
+        {
+            if (RectangleContainsPoint(rect, p))
+            {
+                
+                return rect;
+            }
+        }
+        foreach (Vector4 rect in Rooms)
+        {
+            if (RectangleContainsPoint(rect, p))
+            {
+                return rect;
+            }
+        }
+        return new Vector4(0,0,0,0);
+    }
 
 
+
+
+
+
+    static bool RectangleContainsPoint(Vector4 r, Vector2 p)
+    {
+        r = Utility.CorrectRectPointOrder(r);
+        if (r.x <= p.x && p.x <= r.z && r.w <= p.y && p.y <= r.y) return true;
+        else return false;
+    }
+
+    static bool RectangleOneContainsRectangleTwo(Vector4 r1, Vector4 r2)
+    {
+        r1 = Utility.CorrectRectPointOrder(r1);
+        r2 = Utility.CorrectRectPointOrder(r2);
+        if (r1.x <= r2.x && r2.x <= r1.z && r1.w <= r2.y && r2.y <= r1.y &&
+            r1.x <= r2.z && r2.z <= r1.z && r1.w <= r2.w && r2.w <= r1.y) { return true; }
+        else { return false; }
+    }
 
     // Returns true if two rectangles overlap
     // Does not return true if the rectangles share an edge

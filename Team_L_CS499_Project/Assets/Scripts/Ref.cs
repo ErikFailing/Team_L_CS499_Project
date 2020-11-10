@@ -42,6 +42,11 @@ public class Ref : MonoBehaviour
 
     [Header("Prefabs")]
     public GameObject FloorPrefab;
+    public GameObject WallPrefab;
+    public GameObject TablePrefab;
+    public GameObject TablelegPrefab;
+    public GameObject ChestPrefab;
+    public GameObject VacuumPrefab;
 
     [Header("Materials")]
     public Material Hardwood;
@@ -52,8 +57,14 @@ public class Ref : MonoBehaviour
     [Header("Misc.")]
     public GameObject Camera;
     public GameObject SelectionCube;
+    public GameObject PlacementSelection;
     public GameObject Ground;
-    public GameObject Rooms;
+    public GameObject Floors;
+    public GameObject Walls;
+    public GameObject Tabletops;
+    public GameObject Tablelegs;
+    public GameObject Chests;
+    public GameObject Vacuums;
     public Model Model;
     public ModelVisuals ModelVisuals;
     public Simulation Simulation;
