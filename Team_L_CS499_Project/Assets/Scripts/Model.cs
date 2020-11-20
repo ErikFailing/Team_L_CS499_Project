@@ -53,12 +53,15 @@ public class Model : MonoBehaviour
 
     public bool VerifyHousePlan(out string errorMsg)
     {
+        errorMsg = "";
         // House must be between 200 and 8,000 square feet
         if (totalSquareFeet < 200 || totalSquareFeet > 8000)
         {
             errorMsg = "ERROR: House must have a square footage in the range of [200, 8000]. Current square footage is " + totalSquareFeet;
             return false;
         }
+        // If house has one room, return true
+        if (Rooms.Count == 1) return true;
         // All rooms must have atleast one door
         CalculatePoints();
         // If each room has a point along its edge, return true
@@ -66,35 +69,26 @@ public class Model : MonoBehaviour
         foreach (Vector4 room in Rooms)
         {
             bool containsEntry = false;
+            // Create list of points along room's edge
+            List<Vector2> edges = new List<Vector2>();
             // Top and bottom
             for (int x = (int)room.x; x <= room.z; x++)
             {
-                if (points.ContainsKey(new Vector2(x, room.y)))
-                {
-                    containsEntry = true;
-                    break;
-                }
-                if (points.ContainsKey(new Vector2(x, room.w)))
-                {
-                    containsEntry = true;
-                    break;
-                }
+                edges.Add(new Vector2(x, room.y));
+                edges.Add(new Vector2(x, room.w));
             }
-            // Top and bottom
-            if (!containsEntry)
+            // Left and Right
+            for (int y = (int)room.y; y >= room.w; y--)
             {
-                for (int y = (int)room.y; y >= room.w; y--)
+                edges.Add(new Vector2(room.x, y));
+                edges.Add(new Vector2(room.z, y));
+            }
+            foreach (Vector2 p in edges)
+            {
+                if (points.ContainsKey(p) && Physics.OverlapSphere(new Vector3(p.x, 2, p.y), 7).Length < 1)
                 {
-                    if (points.ContainsKey(new Vector2(room.x, y)))
-                    {
-                        containsEntry = true;
-                        break;
-                    }
-                    if (points.ContainsKey(new Vector2(room.z, y)))
-                    {
-                        containsEntry = true;
-                        break;
-                    }
+                    containsEntry = true;
+                    break;
                 }
             }
             if (!containsEntry)
@@ -105,7 +99,6 @@ public class Model : MonoBehaviour
             
         }
         //Ref.I.ModelVisuals.DisplayNewPoints(points);
-        errorMsg = "";
         return true;
     }
     
