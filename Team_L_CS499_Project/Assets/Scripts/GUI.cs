@@ -25,6 +25,7 @@ public class GUI : MonoBehaviour
         Ref.I.LoadSimulationHelpOverlay.SetActive(false);
         Ref.I.HouseSimulationMenu.SetActive(false);
         Ref.I.HouseSimulationHelpOverlay.SetActive(false);
+        Ref.I.Model.RemoveEverything();
     }
 
     private void OverlayToggle(GameObject o)
@@ -172,13 +173,29 @@ public class GUI : MonoBehaviour
 
     public void FinalizeDesignButtonClick()
     {
-        Ref.I.HousePlannerMenu.SetActive(false);
-        Ref.I.HouseSimulationMenu.SetActive(true);
+        string errorMsg = "";
+        if (Ref.I.Model.VerifyHousePlan(out errorMsg))
+        {
+            // Valid House
+            Ref.I.HousePlannerMenu.SetActive(false);
+            Ref.I.HouseSimulationMenu.SetActive(true);
+            Ref.I.Model.CalculatePaths();
+        }
+        else
+        {
+            // Invalid House
+            Debug.Log(errorMsg);
+        }
     }
 
     public void UpdateSquareFootage(int total)
     {
-        Ref.I.SquareFeetText.GetComponent<TextMeshProUGUI>().text = "Total Square Feet: " + total;
+        Ref.I.SquareFeetText.GetComponent<TextMeshProUGUI>().text = "Total Area (ft^2): " + total;
+    }
+
+    public void UpdateUncleanableArea(int area)
+    {
+        Ref.I.UncleanableAreaText.GetComponent<TextMeshProUGUI>().text = "Uncleanable Area (ft^2): " + area;
     }
 
 

@@ -5,6 +5,7 @@ using UnityEngine;
 public class Model : MonoBehaviour
 {
     public int totalSquareFeet;
+    public int uncleanableArea;
     public string FlooringType;
     public List<Vector4> Rooms;
     public List<Vector4> InnerWalls;
@@ -13,7 +14,148 @@ public class Model : MonoBehaviour
     public List<Vector4> Chests;
     public List<Vector4> Doors;
     public List<Vector4> VacuumStation;
+    public Dictionary<Vector2, float> points;
+    public List<Vector2> RandomPath;
+    public List<Vector2> SpiralPath;
+    public List<Vector2> SnakingPath;
+    public List<Vector2> WallfollowPath;
 
+
+
+
+
+
+    void Start()
+    {
+        points = new Dictionary<Vector2, float>();
+    }
+
+    public void CalculatePaths()
+    {
+        //Random
+        //Spiral
+        //Snaking
+        //Wall-follow
+        // Vacuum moves 27000 inches before running out of energy. 150 minutes, 3 inches a second
+        // Path data structure....
+    }
+    public void CalculateRandomPath()
+    {
+        Vector3 direction = new Vector3(1, 0, 1); // y value should always be zero
+        Vector3 origin = new Vector3(0, 1, 0); // y value should always be one
+        Ray ray = new Ray(origin, direction);
+        RaycastHit hitInfo;
+        bool hit = Physics.SphereCast(ray, 12.8f, out hitInfo);
+
+    }
+
+    
+
+    public bool VerifyHousePlan(out string errorMsg)
+    {
+        // House must be between 200 and 8,000 square feet
+        if (totalSquareFeet < 200 || totalSquareFeet > 8000)
+        {
+            errorMsg = "ERROR: House must have a square footage in the range of [200, 8000]. Current square footage is " + totalSquareFeet;
+            return false;
+        }
+        // All rooms must have atleast one door
+        CalculatePoints();
+        // If each room has a point along its edge, return true
+        // Else, a room lacks a door or is otherwise unenterable, return false
+        foreach (Vector4 room in Rooms)
+        {
+            bool containsEntry = false;
+            // Top and bottom
+            for (int x = (int)room.x; x <= room.z; x++)
+            {
+                if (points.ContainsKey(new Vector2(x, room.y)))
+                {
+                    containsEntry = true;
+                    break;
+                }
+                if (points.ContainsKey(new Vector2(x, room.w)))
+                {
+                    containsEntry = true;
+                    break;
+                }
+            }
+            // Top and bottom
+            if (!containsEntry)
+            {
+                for (int y = (int)room.y; y >= room.w; y--)
+                {
+                    if (points.ContainsKey(new Vector2(room.x, y)))
+                    {
+                        containsEntry = true;
+                        break;
+                    }
+                    if (points.ContainsKey(new Vector2(room.z, y)))
+                    {
+                        containsEntry = true;
+                        break;
+                    }
+                }
+            }
+            if (!containsEntry)
+            {
+                errorMsg = "ERROR: A room does not have a traversable entry (door)";
+                return false;
+            }
+            
+        }
+        //Ref.I.ModelVisuals.DisplayNewPoints(points);
+        errorMsg = "";
+        return true;
+    }
+    
+    
+    public void CalculatePoints()
+    {
+        foreach (Vector4 room in Rooms)
+        {
+            // Add points that are contained in rooms
+            for (int x = (int)room.x; x <= room.z; x++)
+            {
+                for (int y = (int)room.y; y >= room.w; y--)
+                {
+                    Vector2 point = new Vector2(x, y);
+                    // Only add if it isn't already added
+                    if (!points.ContainsKey(point))
+                    {
+                        // Make sure point isn't in an object
+                        bool traversable = true;
+                        foreach (Vector4 rect in InnerWalls)
+                        {
+                            if (RectangleContainsPoint(rect, point)) { traversable = false; break; }
+                        }
+                        foreach (Vector4 rect in Chests)
+                        {
+                            if (!traversable || RectangleContainsPoint(rect, point)) { traversable = false; break; }
+                        }
+                        foreach (Vector4 rect in VacuumStation)
+                        {
+                            if (!traversable || RectangleContainsPoint(rect, point)) { traversable = false; break; }
+                        }
+                        foreach (Vector4 rect in TableLegs)
+                        {
+                            if (!traversable || RectangleContainsPoint(rect, point)) { traversable = false; break; }
+                        }
+                        if (traversable)
+                        {
+                            points.Add(point, 0);
+                        }
+                        
+                    }
+                    
+                }
+            }
+        }
+    }
+    
+    
+    
+    
     public void CalculateTotalSquareFeet()
     {
         totalSquareFeet = 0;
@@ -23,6 +165,36 @@ public class Model : MonoBehaviour
         }
         // Update GUI
         Ref.I.GUI.UpdateSquareFootage(totalSquareFeet);
+    }
+
+    public void CalculateUncleanableArea()
+    {
+        float area = 0;
+        List<Vector4> rects = new List<Vector4>(Chests);
+        rects.AddRange(TableLegs);
+        rects.AddRange(VacuumStation);
+        foreach (Vector4 rect in rects)
+        {
+            float width = Mathf.Abs(rect.x - rect.z);
+            float height = Mathf.Abs(rect.y - rect.w);
+            area += width * height;
+        }
+        //Walls
+        int overlappingWalls = 0;
+        foreach (Vector4 rect in InnerWalls)
+        {
+            float width = Mathf.Abs(rect.x - rect.z);
+            float height = Mathf.Abs(rect.y - rect.w);
+            area += width * height;
+            overlappingWalls += -1;
+            foreach (Vector4 wall in InnerWalls)
+            {
+                if (RectanglesOverlap(rect, wall)) overlappingWalls++;
+            }
+        }
+        area -= (overlappingWalls / 2) * 4;
+        uncleanableArea = Mathf.RoundToInt(area / 144);
+        Ref.I.GUI.UpdateUncleanableArea(uncleanableArea);
     }
 
     public void ChangeFloorType(string type)
@@ -35,6 +207,7 @@ public class Model : MonoBehaviour
     {
         InnerWalls.Add(wall);
         Ref.I.ModelVisuals.DisplayNewWall(wall);
+        CalculateUncleanableArea();
     }
     
     public void AddRoomIfValid(Vector4 room)
@@ -57,6 +230,7 @@ public class Model : MonoBehaviour
 
             Ref.I.ModelVisuals.DisplayNewFloor(room);
             CalculateTotalSquareFeet();
+            CalculateUncleanableArea();
         }
     }
 
@@ -84,6 +258,7 @@ public class Model : MonoBehaviour
             AddTableLeg(new Vector4(table.z -4, table.w + 4, table.z -2, table.w+2));
             // lower left
             AddTableLeg(new Vector4(table.x + 2, table.w + 4, table.x + 4, table.w + 2));
+            CalculateUncleanableArea();
         }
     }
     public void AddChestIfValid(Vector4 chest)
@@ -95,6 +270,7 @@ public class Model : MonoBehaviour
         {
             Chests.Add(chest);
             Ref.I.ModelVisuals.DisplayNewChest(chest);
+            CalculateUncleanableArea();
         }
     }
     public void AddDoorIfValid(Vector4 door)
@@ -149,6 +325,7 @@ public class Model : MonoBehaviour
                     }
                 }
             }
+            CalculateUncleanableArea();
         }
     }
     public void AddVacuumIfValid(Vector4 vacuum)
@@ -159,6 +336,7 @@ public class Model : MonoBehaviour
         {
             VacuumStation.Add(vacuum);
             Ref.I.ModelVisuals.DisplayVacuum(vacuum);
+            CalculateUncleanableArea();
         } 
     }
 
@@ -222,6 +400,9 @@ public class Model : MonoBehaviour
     }
     public bool NewDoorIsValid(Vector4 newDoor)
     {
+        // If one side of door is not greater then 14, return false
+        if (Mathf.Abs(newDoor.x - newDoor.z) < 14 && Mathf.Abs(newDoor.y - newDoor.w) < 14) return false;
+        
         // Overlaps exactly 2 rooms
         int roomsOverlapped = 0;
         foreach (Vector4 room in Rooms)
@@ -314,6 +495,7 @@ public class Model : MonoBehaviour
         {
             RemoveTableleg(leg);
         }
+        CalculateUncleanableArea();
     }
     public void RemoveTableleg(Vector4 leg)
     {
@@ -324,11 +506,18 @@ public class Model : MonoBehaviour
     {
         Chests.Remove(chest);
         Ref.I.ModelVisuals.RemoveDisplayedChest(chest);
+        CalculateUncleanableArea();
     }
     public void RemoveWall(Vector4 wall)
     {
         InnerWalls.Remove(wall);
         Ref.I.ModelVisuals.RemoveDisplayedWall(wall);
+    }
+    public void RemoveVacuum(Vector4 vacuum)
+    {
+        VacuumStation.Remove(vacuum);
+        Ref.I.ModelVisuals.RemoveDisplayedVacuum(vacuum);
+        CalculateUncleanableArea();
     }
     public void RemoveFloor(Vector4 floor)
     {
@@ -382,6 +571,18 @@ public class Model : MonoBehaviour
         {
             RemoveTable(table);
         }
+        toRemove = new List<Vector4>();
+        foreach (Vector4 vacuum in VacuumStation)
+        {
+            if (RectanglesOverlap(floor, vacuum))
+            {
+                toRemove.Add(vacuum);
+            }
+        }
+        foreach (Vector4 vacuum in toRemove)
+        {
+            RemoveVacuum(vacuum);
+        }
         // Fix remaining walls by... *shrug*
         // Can just refresh all walls using currently existing doors
         // or can do some complicated math to figure it out
@@ -411,6 +612,8 @@ public class Model : MonoBehaviour
         {
             AddDoorIfValid(door);
         }
+        CalculateTotalSquareFeet();
+        CalculateUncleanableArea();
     }
     public void RemoveDoor(Vector4 door)
     {
@@ -435,6 +638,14 @@ public class Model : MonoBehaviour
                 return;
             }
         }
+        foreach (Vector4 rect in VacuumStation)
+        {
+            if (RectangleContainsPoint(rect, p))
+            {
+                RemoveVacuum(rect);
+                return;
+            }
+        }
         foreach (Vector4 rect in Rooms)
         {
             if (RectangleContainsPoint(rect, p))
@@ -442,6 +653,15 @@ public class Model : MonoBehaviour
                 RemoveFloor(rect);
                 return;
             }
+        }
+    }
+
+    public void RemoveEverything()
+    {
+        List<Vector4> toRemove = new List<Vector4>(Rooms);
+        foreach (Vector4 room in toRemove)
+        {
+            RemoveFloor(room);
         }
     }
 
@@ -458,7 +678,13 @@ public class Model : MonoBehaviour
         {
             if (RectangleContainsPoint(rect, p))
             {
-                
+                return rect;
+            }
+        }
+        foreach (Vector4 rect in VacuumStation)
+        {
+            if (RectangleContainsPoint(rect, p))
+            {
                 return rect;
             }
         }
