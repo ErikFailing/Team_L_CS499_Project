@@ -70,4 +70,6 @@ public class Ref : MonoBehaviour
     public GameObject Points;
     public Model Model;
     public ModelVisuals ModelVisuals;
+    public Simulation Simulation;
+    public GameObject Vacuum;
 }
