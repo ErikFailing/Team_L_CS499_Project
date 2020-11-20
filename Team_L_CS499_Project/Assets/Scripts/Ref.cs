@@ -39,6 +39,7 @@ public class Ref : MonoBehaviour
     public GameObject FiftySpeedButton;
     public GameObject HundredSpeedButton;
     public GameObject SquareFeetText;
+    public GameObject UncleanableAreaText;
 
     [Header("Prefabs")]
     public GameObject FloorPrefab;
@@ -47,6 +48,7 @@ public class Ref : MonoBehaviour
     public GameObject TablelegPrefab;
     public GameObject ChestPrefab;
     public GameObject VacuumPrefab;
+    public GameObject PointPrefab;
 
     [Header("Materials")]
     public Material Hardwood;
@@ -65,6 +67,7 @@ public class Ref : MonoBehaviour
     public GameObject Tablelegs;
     public GameObject Chests;
     public GameObject Vacuums;
+    public GameObject Points;
     public Model Model;
     public ModelVisuals ModelVisuals;
 }

@@ -21,7 +21,7 @@ public class ModelVisuals : MonoBehaviour
     public Dictionary<Vector4, GameObject> DisplayedTablelegs;
     public Dictionary<Vector4, GameObject> DisplayedChests;
     public Dictionary<Vector4, GameObject> DisplayedVacuums;
-    //public Dictionary<Vector4, GameObject> DisplayedDoors;
+    public Dictionary<Vector2, GameObject> DisplayedPoints;
 
 
 
@@ -38,7 +38,7 @@ public class ModelVisuals : MonoBehaviour
         DisplayedTablelegs = new Dictionary<Vector4, GameObject>();
         DisplayedChests = new Dictionary<Vector4, GameObject>();
         DisplayedVacuums = new Dictionary<Vector4, GameObject>();
-        //DisplayedDoors = new Dictionary<Vector4, GameObject>();
+        DisplayedPoints = new Dictionary<Vector2, GameObject>();
         point1 = new Vector3();
         point2 = new Vector3();
     }
@@ -69,6 +69,15 @@ public class ModelVisuals : MonoBehaviour
                     {
                         Vector3 pos = DisplayedChests[objectRect].transform.position;
                         Vector3 scale = DisplayedChests[objectRect].transform.localScale * 1.001f;
+                        Ref.I.SelectionCube.transform.position = pos;
+                        Ref.I.SelectionCube.transform.localScale = scale;
+                    }
+                    else if (DisplayedVacuums.ContainsKey(objectRect))
+                    {
+                        Vector3 pos = DisplayedVacuums[objectRect].transform.position;
+                        pos.y = 2;
+                        Vector3 scale = DisplayedVacuums[objectRect].transform.localScale * 1.001f;
+                        scale.y = 3;
                         Ref.I.SelectionCube.transform.position = pos;
                         Ref.I.SelectionCube.transform.localScale = scale;
                     }
@@ -326,7 +335,21 @@ public class ModelVisuals : MonoBehaviour
         GameObject go = Instantiate(Ref.I.VacuumPrefab, pos, new Quaternion(), Ref.I.Vacuums.transform);
         DisplayedVacuums.Add(vacuum, go);
     }
-    
+    public void DisplayNewPoint(Vector2 Point)
+    {
+        Vector3 pos = new Vector3(Point.x, 0.75f, Point.y);
+        // Instantiate, position
+        GameObject go = Instantiate(Ref.I.PointPrefab, pos, new Quaternion(), Ref.I.Points.transform);
+        DisplayedChests.Add(Point, go);
+    }
+    public void DisplayNewPoints(Dictionary<Vector2, float> points)
+    {
+        foreach (Vector2 point in points.Keys)
+        {
+            DisplayNewPoint(point);
+        }
+    }
+
     public void RemoveDisplayedFloor(Vector4 floor)
     {
         Destroy(DisplayedRooms[floor]);
@@ -351,6 +374,11 @@ public class ModelVisuals : MonoBehaviour
     {
         Destroy(DisplayedWalls[wall]);
         DisplayedWalls.Remove(wall);
+    }
+    public void RemoveDisplayedVacuum(Vector4 vacuum)
+    {
+        Destroy(DisplayedVacuums[vacuum]);
+        DisplayedVacuums.Remove(vacuum);
     }
 
     public void PositionSelectionCube(float y, float height)
