@@ -4,22 +4,24 @@ using UnityEngine;
 
 public class Simulation : MonoBehaviour
 {
-    private float speed = 1.0f;
+    private float speed = 50.0f;
     private int pathPosition = 1;
     private GameObject vacuum;
     private List<Vector3> path;
 
     public void FindPath()
     {
-        path = new List<Vector3> {
-            new Vector3(0.0f, 0.0f, 0.0f),
-            new Vector3(30.0f, 0.0f, 0.0f),
-            new Vector3(30.0f, 0.0f, 30.0f),
-            new Vector3(0.0f, 0.0f, 30.0f),
-            new Vector3(0.0f, 0.0f, 0.0f),
-            new Vector3(0.0f, 0.0f, -30.0f),
-            new Vector3(-30.0f, 0.0f, -30.0f),
-            new Vector3(-30.0f, 0.0f, 0.0f)};
+        path = Ref.I.Model.RandomPath;
+        
+        //path = new List<Vector3> {
+        //    new Vector3(0.0f, 1.0f, 0.0f),
+        //    new Vector3(30.0f, 1.0f, 0.0f),
+        //    new Vector3(30.0f, 1.0f, 30.0f),
+        //    new Vector3(0.0f, 1.0f, 30.0f),
+        //    new Vector3(0.0f, 1.0f, 0.0f),
+        //    new Vector3(0.0f, 1.0f, -30.0f),
+        //    new Vector3(-30.0f, 1.0f, -30.0f),
+        //    new Vector3(-30.0f, 1.0f, 0.0f)};
     }
     public void StartSimulation()
     {
