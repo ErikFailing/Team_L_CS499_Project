@@ -49,12 +49,14 @@ public class Ref : MonoBehaviour
     public GameObject ChestPrefab;
     public GameObject VacuumPrefab;
     public GameObject PointPrefab;
+    public GameObject TrailPrefab;
 
     [Header("Materials")]
     public Material Hardwood;
     public Material LoopPileCarpet;
     public Material CutPileCarpet;
     public Material FriezeCutPileCarpet;
+    public Material Trail;
 
     [Header("Misc.")]
     public GameObject Camera;
@@ -71,5 +73,4 @@ public class Ref : MonoBehaviour
     public Model Model;
     public ModelVisuals ModelVisuals;
     public Simulation Simulation;
-    public GameObject Vacuum;
 }
