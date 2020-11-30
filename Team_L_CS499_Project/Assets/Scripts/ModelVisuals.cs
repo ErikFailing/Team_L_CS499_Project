@@ -334,6 +334,7 @@ public class ModelVisuals : MonoBehaviour
         // Instantiate, position and scale room floor
         GameObject go = Instantiate(Ref.I.VacuumPrefab, pos, new Quaternion(), Ref.I.Vacuums.transform);
         DisplayedVacuums.Add(vacuum, go);
+        Ref.I.Vacuum = go;
     }
     public void DisplayNewPoint(Vector2 Point)
     {
@@ -379,6 +380,7 @@ public class ModelVisuals : MonoBehaviour
     {
         Destroy(DisplayedVacuums[vacuum]);
         DisplayedVacuums.Remove(vacuum);
+        Ref.I.Vacuum = null;
     }
 
     public void PositionSelectionCube(float y, float height)

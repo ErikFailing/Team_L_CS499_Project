@@ -15,13 +15,10 @@ public class Model : MonoBehaviour
     public List<Vector4> Doors;
     public List<Vector4> VacuumStation;
     public Dictionary<Vector2, float> points;
-    public List<Vector2> RandomPath;
-    public List<Vector2> SpiralPath;
-    public List<Vector2> SnakingPath;
-    public List<Vector2> WallfollowPath;
-
-
-
+    public List<Vector3> RandomPath;
+    public List<Vector3> SpiralPath;
+    public List<Vector3> SnakingPath;
+    public List<Vector3> WallfollowPath;
 
 
 
@@ -32,33 +29,139 @@ public class Model : MonoBehaviour
 
     public void CalculatePaths()
     {
-        //Random
-        //Spiral
-        //Snaking
-        //Wall-follow
         // Vacuum moves 27000 inches before running out of energy. 150 minutes, 3 inches a second
         // Path data structure....
+
+        //Random
+        CalculateRandomPath();
+        //Spiral
+        CalculateSpiralPath();
+        //Snaking
+        CalculateSnakingPath();
+        //Wall-follow
+        CalculateWallFollowPath();
+        
     }
     public void CalculateRandomPath()
     {
-        Vector3 direction = new Vector3(1, 0, 1); // y value should always be zero
-        Vector3 origin = new Vector3(0, 1, 0); // y value should always be one
-        Ray ray = new Ray(origin, direction);
-        RaycastHit hitInfo;
-        bool hit = Physics.SphereCast(ray, 12.8f, out hitInfo);
+        float totalDist = 0;
+        Vector3 startPos = Ref.I.Vacuum.transform.position;
+        
+        RandomPath.Add(startPos);
+
+        while (totalDist < 27000)
+        {
+            Ray ray = new Ray(Ref.I.Vacuum.transform.position, Ref.I.Vacuum.transform.forward);
+            Physics.SphereCast(ray, 6.4f, out RaycastHit hitInfo);
+            Vector3 target = ray.GetPoint(hitInfo.distance - 0.1f);
+            // If vacuum can make the full distance without running out of battery, go the distance
+            if (totalDist + hitInfo.distance <= 27000)
+            {
+                RandomPath.Add(target);
+                totalDist += hitInfo.distance;
+            }
+            else // Only go the remaning distance until the vacuum runs out of battery
+            {
+                float remainingDist = -totalDist + 27000;
+                RandomPath.Add(target);
+                totalDist += remainingDist;
+            }
+
+            if (Physics.OverlapSphere(target, 6.4f).Length > 0)
+            {
+                Debug.LogWarning("WARNING: Random Path may be incorrect.");
+            }
+
+
+            // Decide which way to turn
+            // Cast two spheres, one to the left and another to the right
+            // Turn in the direction of the sphere that got the farthest
+            Ray rightRay = new Ray(target, Ref.I.Vacuum.transform.right);
+            Physics.SphereCast(rightRay, 6.4f, out RaycastHit rightHitInfo);
+            Ray leftRay = new Ray(target, -Ref.I.Vacuum.transform.right);
+            Physics.SphereCast(leftRay, 6.4f, out RaycastHit leftHitInfo);
+
+            if (rightHitInfo.distance > leftHitInfo.distance)
+            {
+                // Turn Right by a random amount
+                Ref.I.Vacuum.transform.Rotate(0, Random.Range(45, 135), 0);
+            }
+            else
+            {
+                // Turn Left by a random amount
+                Ref.I.Vacuum.transform.Rotate(0, -Random.Range(45, 135), 0);
+            }
+
+            // Move vacuum
+            Ref.I.Vacuum.transform.position = target;
+        }
+
+        // Reset vacuum
+        Ref.I.Vacuum.transform.position = startPos;
+        Ref.I.Vacuum.transform.rotation = new Quaternion();
+    }
+    public void CalculateSnakingPath()
+    {
+
+    }
+    public void CalculateSpiralPath()
+    {
+
+    }
+    public void CalculateWallFollowPath()
+    {
 
     }
 
-    
+
+
+    // Used to points within the radius of the whiskers and vacuum
+    public List<Vector2> GetPointsWithinCircle(Vector2 center, float radius)
+    {
+        List<Vector2> pList = new List<Vector2>();
+        for (float x = center.x-radius-1; x < center.x+radius+1; x +=1)
+        {
+            for (float y = center.y - radius - 1; y < center.y + radius + 1; x += 1)
+            {
+                Vector2 p = new Vector2(Mathf.Round(x), Mathf.Round(y));
+                if (points.ContainsKey(p) && Vector2.Distance(p, center) <= radius)
+                {
+                    // Point exists and is within radius, add to list
+                    pList.Add(p);
+                }
+            }
+        }
+        return pList;
+    }
+
+    public void ResetPoints()
+    {
+        foreach (Vector2 p in points.Keys)
+        {
+            points[p] = 0;
+        }
+    }
+
+
+
 
     public bool VerifyHousePlan(out string errorMsg)
     {
+        errorMsg = "";
         // House must be between 200 and 8,000 square feet
         if (totalSquareFeet < 200 || totalSquareFeet > 8000)
         {
             errorMsg = "ERROR: House must have a square footage in the range of [200, 8000]. Current square footage is " + totalSquareFeet;
             return false;
         }
+        // House must be between 200 and 8,000 square feet
+        if (VacuumStation.Count < 1)
+        {
+            errorMsg = "ERROR: House must have a robot vacuum in it.";
+            return false;
+        }
+        // If house has one room, return true
+        if (Rooms.Count == 1) return true;
         // All rooms must have atleast one door
         CalculatePoints();
         // If each room has a point along its edge, return true
@@ -66,35 +169,26 @@ public class Model : MonoBehaviour
         foreach (Vector4 room in Rooms)
         {
             bool containsEntry = false;
+            // Create list of points along room's edge
+            List<Vector2> edges = new List<Vector2>();
             // Top and bottom
             for (int x = (int)room.x; x <= room.z; x++)
             {
-                if (points.ContainsKey(new Vector2(x, room.y)))
-                {
-                    containsEntry = true;
-                    break;
-                }
-                if (points.ContainsKey(new Vector2(x, room.w)))
-                {
-                    containsEntry = true;
-                    break;
-                }
+                edges.Add(new Vector2(x, room.y));
+                edges.Add(new Vector2(x, room.w));
             }
-            // Top and bottom
-            if (!containsEntry)
+            // Left and Right
+            for (int y = (int)room.y; y >= room.w; y--)
             {
-                for (int y = (int)room.y; y >= room.w; y--)
+                edges.Add(new Vector2(room.x, y));
+                edges.Add(new Vector2(room.z, y));
+            }
+            foreach (Vector2 p in edges)
+            {
+                if (points.ContainsKey(p) && Physics.OverlapSphere(new Vector3(p.x, 2, p.y), 7).Length < 1)
                 {
-                    if (points.ContainsKey(new Vector2(room.x, y)))
-                    {
-                        containsEntry = true;
-                        break;
-                    }
-                    if (points.ContainsKey(new Vector2(room.z, y)))
-                    {
-                        containsEntry = true;
-                        break;
-                    }
+                    containsEntry = true;
+                    break;
                 }
             }
             if (!containsEntry)
@@ -105,7 +199,6 @@ public class Model : MonoBehaviour
             
         }
         //Ref.I.ModelVisuals.DisplayNewPoints(points);
-        errorMsg = "";
         return true;
     }
     
@@ -130,10 +223,6 @@ public class Model : MonoBehaviour
                             if (RectangleContainsPoint(rect, point)) { traversable = false; break; }
                         }
                         foreach (Vector4 rect in Chests)
-                        {
-                            if (!traversable || RectangleContainsPoint(rect, point)) { traversable = false; break; }
-                        }
-                        foreach (Vector4 rect in VacuumStation)
                         {
                             if (!traversable || RectangleContainsPoint(rect, point)) { traversable = false; break; }
                         }
@@ -663,6 +752,12 @@ public class Model : MonoBehaviour
         {
             RemoveFloor(room);
         }
+        RandomPath.Clear();
+        points.Clear();
+        SpiralPath.Clear();
+        WallfollowPath.Clear();
+        SnakingPath.Clear();
+        ChangeFloorType("Hardwood");
     }
 
     public Vector4 FindObjectRect(Vector2 p)
