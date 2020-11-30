@@ -73,4 +73,5 @@ public class Ref : MonoBehaviour
     public Model Model;
     public ModelVisuals ModelVisuals;
     public Simulation Simulation;
+    public GameObject Vacuum;
 }
