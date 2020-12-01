@@ -186,6 +186,7 @@ public class GUI : MonoBehaviour
             Ref.I.Model.CalculatePaths();
             // Create save
             string saveName = SaveSystem.CreateSaveFile(Ref.I.Model.data.name);
+            Ref.I.Model.data.name = saveName;
             SaveSystem.SaveToFile(saveName);
 
         }
@@ -230,8 +231,8 @@ public class GUI : MonoBehaviour
 
     public void SaveSimulation()
     {
-        Ref.I.MainMenu.SetActive(true);
-        Ref.I.HouseSimulationMenu.SetActive(false);
+        SaveSystem.SaveToFile(Ref.I.Model.data.name);
+        BackButtonClick();
     }
 
     public void OneSpeedButtonClick()
