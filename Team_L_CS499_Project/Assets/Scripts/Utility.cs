@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System;
 
 public static class Utility
 {
@@ -148,3 +149,34 @@ public static class Utility
         return new Vector4(pos.x - (scale.x / 2), pos.z + (scale.z / 2), pos.x + (scale.x / 2), pos.z - (scale.z / 2));
     }
 }
+
+
+/// <summary>
+/// A wrapper structure for a List of strings
+/// Used to create multi-dimensional lists of strings
+/// </summary>
+[Serializable]
+public struct StringListWrapper
+{
+    public List<string> stringList;
+    public StringListWrapper(List<string> l)
+    {
+        stringList = l;
+    }
+}
+
+/// <summary>
+/// A wrapper structure for a List of Vector3s
+/// Used to create multi-dimensional lists of Vector3s
+/// </summary>
+[Serializable]
+public struct VectorThreeListWrapper
+{
+    public List<Vector3> vectorThreeList;
+    public VectorThreeListWrapper(List<Vector3> l)
+    {
+        vectorThreeList = l;
+    }
+}
+
+

@@ -277,7 +277,7 @@ public class ModelVisuals : MonoBehaviour
         GameObject go = Instantiate(Ref.I.FloorPrefab, Utility.PosFromRect(floor), new Quaternion(), Ref.I.Floors.transform);
         go.transform.localScale = Utility.ScaleFromRect(floor);
         // Set correct floor type
-        DisplayFloorType(Ref.I.Model.FlooringType);
+        DisplayFloorType(Ref.I.Model.data.FlooringType);
 
         DisplayedRooms.Add(floor, go);
     }
@@ -334,6 +334,7 @@ public class ModelVisuals : MonoBehaviour
         // Instantiate, position and scale room floor
         GameObject go = Instantiate(Ref.I.VacuumPrefab, pos, new Quaternion(), Ref.I.Vacuums.transform);
         DisplayedVacuums.Add(vacuum, go);
+        Ref.I.Vacuum = go;
     }
     public void DisplayNewPoint(Vector2 Point)
     {
@@ -379,6 +380,7 @@ public class ModelVisuals : MonoBehaviour
     {
         Destroy(DisplayedVacuums[vacuum]);
         DisplayedVacuums.Remove(vacuum);
+        Ref.I.Vacuum = null;
     }
 
     public void PositionSelectionCube(float y, float height)
