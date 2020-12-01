@@ -1,30 +1,47 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System;
 
 public class Model : MonoBehaviour
 {
-    public int totalSquareFeet;
-    public int uncleanableArea;
-    public string FlooringType;
-    public List<Vector4> Rooms;
-    public List<Vector4> InnerWalls;
-    public List<Vector4> Tables;
-    public List<Vector4> TableLegs;
-    public List<Vector4> Chests;
-    public List<Vector4> Doors;
-    public List<Vector4> VacuumStation;
-    public Dictionary<Vector2, float> points;
-    public List<Vector3> RandomPath;
-    public List<Vector3> SpiralPath;
-    public List<Vector3> SnakingPath;
-    public List<Vector3> WallfollowPath;
+    public Data data;
+
+    public Dictionary<Vector2, float> cleanablePoints;
+
+    [Serializable]
+    public class Data
+    {
+        public string name;
+        public string pathingVersion;
+        public int totalSquareFeet;
+        public int uncleanableArea;
+        public string FlooringType;
+        public List<Vector4> Rooms;
+        public List<Vector4> InnerWalls;
+        public List<Vector4> Tables;
+        public List<Vector4> TableLegs;
+        public List<Vector4> Chests;
+        public List<Vector4> Doors;
+        public List<Vector4> VacuumStation;
+        public List<VectorThreeListWrapper> RandomPaths;
+        public List<VectorThreeListWrapper> SpiralPaths;
+        public List<VectorThreeListWrapper> SnakingPaths;
+        public List<VectorThreeListWrapper> WallfollowPaths;
+
+        // Updated at save only
+        public List<Vector2> cleanablePointsVectors;
+        public List<float> cleanablePointsValues;
+    }
+
 
 
 
     void Start()
     {
-        points = new Dictionary<Vector2, float>();
+        cleanablePoints = new Dictionary<Vector2, float>();
+        data.pathingVersion = "v1.2.4";
+        data.FlooringType = "Hardwood";
     }
 
     public void CalculatePaths()
@@ -44,10 +61,15 @@ public class Model : MonoBehaviour
     }
     public void CalculateRandomPath()
     {
+        // Add new path to RandomPaths
+        data.RandomPaths.Add(new VectorThreeListWrapper(new List<Vector3>()));
+
+        int pathIndex = data.RandomPaths.Count - 1;
         float totalDist = 0;
         Vector3 startPos = Ref.I.Vacuum.transform.position;
         
-        RandomPath.Add(startPos);
+        // Add starting position to path
+        data.RandomPaths[pathIndex].vectorThreeList.Add(startPos);
 
         while (totalDist < 27000)
         {
@@ -57,13 +79,13 @@ public class Model : MonoBehaviour
             // If vacuum can make the full distance without running out of battery, go the distance
             if (totalDist + hitInfo.distance <= 27000)
             {
-                RandomPath.Add(target);
+                data.RandomPaths[pathIndex].vectorThreeList.Add(target);
                 totalDist += hitInfo.distance;
             }
             else // Only go the remaning distance until the vacuum runs out of battery
             {
                 float remainingDist = -totalDist + 27000;
-                RandomPath.Add(target);
+                data.RandomPaths[pathIndex].vectorThreeList.Add(target);
                 totalDist += remainingDist;
             }
 
@@ -84,12 +106,12 @@ public class Model : MonoBehaviour
             if (rightHitInfo.distance > leftHitInfo.distance)
             {
                 // Turn Right by a random amount
-                Ref.I.Vacuum.transform.Rotate(0, Random.Range(45, 135), 0);
+                Ref.I.Vacuum.transform.Rotate(0, UnityEngine.Random.Range(45, 135), 0);
             }
             else
             {
                 // Turn Left by a random amount
-                Ref.I.Vacuum.transform.Rotate(0, -Random.Range(45, 135), 0);
+                Ref.I.Vacuum.transform.Rotate(0, -UnityEngine.Random.Range(45, 135), 0);
             }
 
             // Move vacuum
@@ -114,6 +136,84 @@ public class Model : MonoBehaviour
     }
 
 
+    // Takes in the distance the robot is into the path and adjusts 
+    // the model to represent current cleanliness
+    // distance is how far (in inches) the robot is along the path
+    public void CalculateCleanliness(float distance)
+    {
+        // Need to make this switch based on current path
+        List<Vector3> path = data.RandomPaths[0].vectorThreeList;
+
+        float distanceCovered = 0;
+        Vector3 currentPos = path[0];
+        int targetIndex = 1;
+        float cleaningEfficieny = 0;
+
+        // Set cleaning efficiency based on floor type
+        if (data.FlooringType == "Hardwood")
+        {
+            cleaningEfficieny = 4;
+        }
+        else if (data.FlooringType == "Loop Pile Carpet")
+        {
+            cleaningEfficieny = 3;
+        }
+        else if (data.FlooringType == "Cut Pile Carpet")
+        {
+            cleaningEfficieny = 2;
+        }
+        else if (data.FlooringType == "Frieze-cut Pile Carpet")
+        {
+            cleaningEfficieny = 1;
+        }
+
+        // Clean
+        while (distanceCovered < distance)
+        {
+            // Clean current point
+            // Vacuum
+            List<Vector2> vacuumPoints = GetPointsWithinCircle(new Vector2(currentPos.x, currentPos.z), 5.8f);
+            foreach (Vector2 p in vacuumPoints)
+            {
+                cleanablePoints[p] += cleaningEfficieny;
+            }
+            // Whiskers
+            List<Vector2> whiskerPoints = GetPointsWithinCircle(new Vector2(currentPos.x, currentPos.z), 13.5f);
+            // Remove vacuum points so they do get cleaned twice
+            foreach (Vector2 p in vacuumPoints)
+            {
+                whiskerPoints.Remove(p);
+            }
+            foreach (Vector2 p in whiskerPoints)
+            {
+                cleanablePoints[p] += cleaningEfficieny * 0.7f;
+            }
+
+            // Advance current position one inch along the path
+            float remainingDistance = 1;
+            while (remainingDistance > 0)
+            {
+                float distanceToNextPoint = Vector3.Distance(currentPos, path[targetIndex]);
+                if (distanceToNextPoint < remainingDistance)
+                {
+                    // Advance to next point
+                    currentPos = Vector3.MoveTowards(currentPos, path[targetIndex], distanceToNextPoint);
+                    remainingDistance -= distanceToNextPoint;
+                    targetIndex += 1;
+                }
+                else
+                {
+                    // Advance along path as normal
+                    currentPos = Vector3.MoveTowards(currentPos, path[targetIndex], remainingDistance);
+                    remainingDistance -= remainingDistance;
+                }
+            }
+            
+            
+            distanceCovered += 1;
+        }
+
+    }
 
     // Used to points within the radius of the whiskers and vacuum
     public List<Vector2> GetPointsWithinCircle(Vector2 center, float radius)
@@ -124,7 +224,7 @@ public class Model : MonoBehaviour
             for (float y = center.y - radius - 1; y < center.y + radius + 1; x += 1)
             {
                 Vector2 p = new Vector2(Mathf.Round(x), Mathf.Round(y));
-                if (points.ContainsKey(p) && Vector2.Distance(p, center) <= radius)
+                if (cleanablePoints.ContainsKey(p) && Vector2.Distance(p, center) <= radius)
                 {
                     // Point exists and is within radius, add to list
                     pList.Add(p);
@@ -136,9 +236,9 @@ public class Model : MonoBehaviour
 
     public void ResetPoints()
     {
-        foreach (Vector2 p in points.Keys)
+        foreach (Vector2 p in cleanablePoints.Keys)
         {
-            points[p] = 0;
+            cleanablePoints[p] = 0;
         }
     }
 
@@ -149,24 +249,30 @@ public class Model : MonoBehaviour
     {
         errorMsg = "";
         // House must be between 200 and 8,000 square feet
-        if (totalSquareFeet < 200 || totalSquareFeet > 8000)
+        if (data.totalSquareFeet < 200 || data.totalSquareFeet > 8000)
         {
-            errorMsg = "ERROR: House must have a square footage in the range of [200, 8000]. Current square footage is " + totalSquareFeet;
+            errorMsg = "ERROR: House must have a square footage in the range of [200, 8000]. Current square footage is " + data.totalSquareFeet;
             return false;
         }
-        // House must be between 200 and 8,000 square feet
-        if (VacuumStation.Count < 1)
+        // House must have a vacuum
+        if (data.VacuumStation.Count < 1)
         {
             errorMsg = "ERROR: House must have a robot vacuum in it.";
             return false;
         }
+        // House must have a name
+        if (data.name == "")
+        {
+            errorMsg = "ERROR: House plan must have a name";
+            return false;
+        }
         // If house has one room, return true
-        if (Rooms.Count == 1) return true;
+        if (data.Rooms.Count == 1) return true;
         // All rooms must have atleast one door
         CalculatePoints();
         // If each room has a point along its edge, return true
         // Else, a room lacks a door or is otherwise unenterable, return false
-        foreach (Vector4 room in Rooms)
+        foreach (Vector4 room in data.Rooms)
         {
             bool containsEntry = false;
             // Create list of points along room's edge
@@ -185,7 +291,7 @@ public class Model : MonoBehaviour
             }
             foreach (Vector2 p in edges)
             {
-                if (points.ContainsKey(p) && Physics.OverlapSphere(new Vector3(p.x, 2, p.y), 7).Length < 1)
+                if (cleanablePoints.ContainsKey(p) && Physics.OverlapSphere(new Vector3(p.x, 2, p.y), 7).Length < 1)
                 {
                     containsEntry = true;
                     break;
@@ -205,7 +311,7 @@ public class Model : MonoBehaviour
     
     public void CalculatePoints()
     {
-        foreach (Vector4 room in Rooms)
+        foreach (Vector4 room in data.Rooms)
         {
             // Add points that are contained in rooms
             for (int x = (int)room.x; x <= room.z; x++)
@@ -214,25 +320,25 @@ public class Model : MonoBehaviour
                 {
                     Vector2 point = new Vector2(x, y);
                     // Only add if it isn't already added
-                    if (!points.ContainsKey(point))
+                    if (!cleanablePoints.ContainsKey(point))
                     {
                         // Make sure point isn't in an object
                         bool traversable = true;
-                        foreach (Vector4 rect in InnerWalls)
+                        foreach (Vector4 rect in data.InnerWalls)
                         {
                             if (RectangleContainsPoint(rect, point)) { traversable = false; break; }
                         }
-                        foreach (Vector4 rect in Chests)
+                        foreach (Vector4 rect in data.Chests)
                         {
                             if (!traversable || RectangleContainsPoint(rect, point)) { traversable = false; break; }
                         }
-                        foreach (Vector4 rect in TableLegs)
+                        foreach (Vector4 rect in data.TableLegs)
                         {
                             if (!traversable || RectangleContainsPoint(rect, point)) { traversable = false; break; }
                         }
                         if (traversable)
                         {
-                            points.Add(point, 0);
+                            cleanablePoints.Add(point, 0);
                         }
                         
                     }
@@ -247,21 +353,21 @@ public class Model : MonoBehaviour
     
     public void CalculateTotalSquareFeet()
     {
-        totalSquareFeet = 0;
-        foreach (Vector4 room in Rooms)
+        data.totalSquareFeet = 0;
+        foreach (Vector4 room in data.Rooms)
         {
-            totalSquareFeet += Mathf.RoundToInt(Mathf.Abs(((room.x - room.z)/12) * ((room.y - room.w)/12)) );
+            data.totalSquareFeet += Mathf.RoundToInt(Mathf.Abs(((room.x - room.z)/12) * ((room.y - room.w)/12)) );
         }
         // Update GUI
-        Ref.I.GUI.UpdateSquareFootage(totalSquareFeet);
+        Ref.I.GUI.UpdateSquareFootage(data.totalSquareFeet);
     }
 
     public void CalculateUncleanableArea()
     {
         float area = 0;
-        List<Vector4> rects = new List<Vector4>(Chests);
-        rects.AddRange(TableLegs);
-        rects.AddRange(VacuumStation);
+        List<Vector4> rects = new List<Vector4>(data.Chests);
+        rects.AddRange(data.TableLegs);
+        rects.AddRange(data.VacuumStation);
         foreach (Vector4 rect in rects)
         {
             float width = Mathf.Abs(rect.x - rect.z);
@@ -270,31 +376,31 @@ public class Model : MonoBehaviour
         }
         //Walls
         int overlappingWalls = 0;
-        foreach (Vector4 rect in InnerWalls)
+        foreach (Vector4 rect in data.InnerWalls)
         {
             float width = Mathf.Abs(rect.x - rect.z);
             float height = Mathf.Abs(rect.y - rect.w);
             area += width * height;
             overlappingWalls += -1;
-            foreach (Vector4 wall in InnerWalls)
+            foreach (Vector4 wall in data.InnerWalls)
             {
                 if (RectanglesOverlap(rect, wall)) overlappingWalls++;
             }
         }
         area -= (overlappingWalls / 2) * 4;
-        uncleanableArea = Mathf.RoundToInt(area / 144);
-        Ref.I.GUI.UpdateUncleanableArea(uncleanableArea);
+        data.uncleanableArea = Mathf.RoundToInt(area / 144);
+        Ref.I.GUI.UpdateUncleanableArea(data.uncleanableArea);
     }
 
     public void ChangeFloorType(string type)
     {
-        FlooringType = type;
+        data.FlooringType = type;
         Ref.I.ModelVisuals.DisplayFloorType(type);
     }
 
     public void AddWall(Vector4 wall)
     {
-        InnerWalls.Add(wall);
+        data.InnerWalls.Add(wall);
         Ref.I.ModelVisuals.DisplayNewWall(wall);
         CalculateUncleanableArea();
     }
@@ -306,8 +412,8 @@ public class Model : MonoBehaviour
         // Add if valid
         if (NewRoomIsValid(room))
         {
-            Rooms.Add(room);
-            // Add InnerWalls
+            data.Rooms.Add(room);
+            // Add data.InnerWalls
             // North
             AddWall(new Vector4(room.x, room.y, room.z, room.y - 2));
             // South
@@ -325,7 +431,7 @@ public class Model : MonoBehaviour
 
     public void AddTableLeg(Vector4 leg)
     {
-        TableLegs.Add(leg);
+        data.TableLegs.Add(leg);
         Ref.I.ModelVisuals.DisplayNewTableleg(leg);
     }
 
@@ -336,7 +442,7 @@ public class Model : MonoBehaviour
         // Add if valid
         if (NewTableIsValid(table))
         {
-            Tables.Add(table);
+            data.Tables.Add(table);
             Ref.I.ModelVisuals.DisplayNewTabletop(table);
             // Add table legs
             // Upper left
@@ -357,7 +463,7 @@ public class Model : MonoBehaviour
         // Add if valid
         if (NewChestIsValid(chest))
         {
-            Chests.Add(chest);
+            data.Chests.Add(chest);
             Ref.I.ModelVisuals.DisplayNewChest(chest);
             CalculateUncleanableArea();
         }
@@ -369,10 +475,10 @@ public class Model : MonoBehaviour
         // Add if valid
         if (NewDoorIsValid(door))
         {
-            Doors.Add(door);
+            data.Doors.Add(door);
             // Find the two overlapping walls
             List<Vector4> overlappingWalls = new List<Vector4>();
-            foreach (Vector4 wall in InnerWalls)
+            foreach (Vector4 wall in data.InnerWalls)
             {
                 if (RectanglesOverlap(wall, door))
                 {
@@ -423,7 +529,7 @@ public class Model : MonoBehaviour
         vacuum = Utility.CorrectRectPointOrder(vacuum);
         if (NewVacuumIsValid(vacuum))
         {
-            VacuumStation.Add(vacuum);
+            data.VacuumStation.Add(vacuum);
             Ref.I.ModelVisuals.DisplayVacuum(vacuum);
             CalculateUncleanableArea();
         } 
@@ -437,10 +543,10 @@ public class Model : MonoBehaviour
         if (newRoom.x == newRoom.z || newRoom.y == newRoom.w) { return false; }
         
         // NOT first room and NOT connecting to other rooms
-        if (Rooms.Count > 0)
+        if (data.Rooms.Count > 0)
         {
             // Room isn't valid if it overlaps any other room
-            foreach (Vector4 room in Rooms)
+            foreach (Vector4 room in data.Rooms)
             {
                 if (RectanglesOverlap(newRoom, room))
                 {
@@ -448,7 +554,7 @@ public class Model : MonoBehaviour
                 }
             }
             // Room is valid if it shares an edge and doesn't overlap
-            foreach (Vector4 room in Rooms)
+            foreach (Vector4 room in data.Rooms)
             {
                 if (RectanglesShareAnEdge(newRoom, room))
                 {
@@ -494,7 +600,7 @@ public class Model : MonoBehaviour
         
         // Overlaps exactly 2 rooms
         int roomsOverlapped = 0;
-        foreach (Vector4 room in Rooms)
+        foreach (Vector4 room in data.Rooms)
         {
             if (RectanglesOverlap(room, newDoor))
             {
@@ -504,7 +610,7 @@ public class Model : MonoBehaviour
         if (roomsOverlapped != 2) return false;
         // Overlaps less than 3 walls
         List<Vector4> overlappingWalls = new List<Vector4>();
-        foreach (Vector4 wall in InnerWalls)
+        foreach (Vector4 wall in data.InnerWalls)
         {
             if (RectanglesOverlap(wall, newDoor))
             {
@@ -530,37 +636,37 @@ public class Model : MonoBehaviour
     public bool NewVacuumIsValid(Vector4 newVacuum)
     {
         newVacuum = Utility.CorrectRectPointOrder(newVacuum);
-        if (VacuumStation.Count > 0) return false;
+        if (data.VacuumStation.Count > 0) return false;
         if (!NewHouseObjectIsValid(newVacuum)) return false;
         return true;
     }
     public bool NewHouseObjectIsValid(Vector4 newRect)
     {
         // House Object must not overlap a wall, door, chest, table or the vacuum
-        foreach (Vector4 obj in Tables)
+        foreach (Vector4 obj in data.Tables)
         {
             if (RectanglesOverlap(obj, newRect)) { return false; }
         }
-        foreach (Vector4 obj in InnerWalls)
+        foreach (Vector4 obj in data.InnerWalls)
         {
             if (RectanglesOverlap(obj, newRect)) { return false; }
         }
-        /*foreach (Vector4 obj in Doors)
+        /*foreach (Vector4 obj in data.Doors)
         {
             if (RectanglesOverlap(obj, newRect)) { return false; }
         }*/
-        foreach (Vector4 obj in Chests)
+        foreach (Vector4 obj in data.Chests)
         {
             if (RectanglesOverlap(obj, newRect)) { return false; }
         }
-        foreach (Vector4 obj in VacuumStation)
+        foreach (Vector4 obj in data.VacuumStation)
         {
             if (RectanglesOverlap(obj, newRect)) { return false; }
         }
         // House object must also be in the confines of the house
         bool point1InHouse = false;
         bool point2InHouse = false;
-        foreach (Vector4 room in Rooms)
+        foreach (Vector4 room in data.Rooms)
         {
             if (RectangleContainsPoint(room, new Vector2(newRect.x, newRect.y))) point1InHouse = true;
             if (RectangleContainsPoint(room, new Vector2(newRect.z, newRect.w))) point2InHouse = true;
@@ -570,10 +676,10 @@ public class Model : MonoBehaviour
     }
     public void RemoveTable(Vector4 table)
     {
-        Tables.Remove(table);
+        data.Tables.Remove(table);
         Ref.I.ModelVisuals.RemoveDisplayedTabletop(table);
         List<Vector4> toRemove = new List<Vector4>();
-        foreach (Vector4 leg in TableLegs)
+        foreach (Vector4 leg in data.TableLegs)
         {
             if (RectangleOneContainsRectangleTwo(table, leg))
             {
@@ -588,32 +694,32 @@ public class Model : MonoBehaviour
     }
     public void RemoveTableleg(Vector4 leg)
     {
-        TableLegs.Remove(leg);
+        data.TableLegs.Remove(leg);
         Ref.I.ModelVisuals.RemoveDisplayedTableleg(leg);
     }
     public void RemoveChest(Vector4 chest)
     {
-        Chests.Remove(chest);
+        data.Chests.Remove(chest);
         Ref.I.ModelVisuals.RemoveDisplayedChest(chest);
         CalculateUncleanableArea();
     }
     public void RemoveWall(Vector4 wall)
     {
-        InnerWalls.Remove(wall);
+        data.InnerWalls.Remove(wall);
         Ref.I.ModelVisuals.RemoveDisplayedWall(wall);
     }
     public void RemoveVacuum(Vector4 vacuum)
     {
-        VacuumStation.Remove(vacuum);
+        data.VacuumStation.Remove(vacuum);
         Ref.I.ModelVisuals.RemoveDisplayedVacuum(vacuum);
         CalculateUncleanableArea();
     }
     public void RemoveFloor(Vector4 floor)
     {
-        Rooms.Remove(floor);
+        data.Rooms.Remove(floor);
         Ref.I.ModelVisuals.RemoveDisplayedFloor(floor);
         List<Vector4> toRemove = new List<Vector4>();
-        foreach (Vector4 wall in InnerWalls)
+        foreach (Vector4 wall in data.InnerWalls)
         {
             if (RectangleOneContainsRectangleTwo(floor, wall))
             {
@@ -625,7 +731,7 @@ public class Model : MonoBehaviour
             RemoveWall(wall);
         }
         toRemove = new List<Vector4>();
-        foreach (Vector4 door in Doors)
+        foreach (Vector4 door in data.Doors)
         {
             if (RectanglesOverlap(floor, door))
             {
@@ -637,7 +743,7 @@ public class Model : MonoBehaviour
             RemoveDoor(door);
         }
         toRemove = new List<Vector4>();
-        foreach (Vector4 chest in Chests)
+        foreach (Vector4 chest in data.Chests)
         {
             if (RectanglesOverlap(floor, chest))
             {
@@ -649,7 +755,7 @@ public class Model : MonoBehaviour
             RemoveChest(chest);
         }
         toRemove = new List<Vector4>();
-        foreach (Vector4 table in Tables)
+        foreach (Vector4 table in data.Tables)
         {
             if (RectanglesOverlap(floor, table))
             {
@@ -661,7 +767,7 @@ public class Model : MonoBehaviour
             RemoveTable(table);
         }
         toRemove = new List<Vector4>();
-        foreach (Vector4 vacuum in VacuumStation)
+        foreach (Vector4 vacuum in data.VacuumStation)
         {
             if (RectanglesOverlap(floor, vacuum))
             {
@@ -677,13 +783,13 @@ public class Model : MonoBehaviour
         // or can do some complicated math to figure it out
 
         //Remove all walls
-        toRemove = new List<Vector4>(InnerWalls);
+        toRemove = new List<Vector4>(data.InnerWalls);
         foreach (Vector4 wall in toRemove)
         {
             RemoveWall(wall);
         }
         //Re-add walls
-        foreach (Vector4 room in Rooms)
+        foreach (Vector4 room in data.Rooms)
         {
             // North
             AddWall(new Vector4(room.x, room.y, room.z, room.y - 2));
@@ -695,8 +801,8 @@ public class Model : MonoBehaviour
             AddWall(new Vector4(room.z - 2, room.y, room.z, room.w));
         }
         //Re-create doors
-        List<Vector4> tempDoors = new List<Vector4>(Doors);
-        Doors = new List<Vector4>();
+        List<Vector4> tempDoors = new List<Vector4>(data.Doors);
+        data.Doors = new List<Vector4>();
         foreach (Vector4 door in tempDoors)
         {
             AddDoorIfValid(door);
@@ -706,12 +812,12 @@ public class Model : MonoBehaviour
     }
     public void RemoveDoor(Vector4 door)
     {
-        Doors.Remove(door);
+        data.Doors.Remove(door);
     }
     
     public void DeleteObject(Vector2 p)
     {
-        foreach (Vector4 rect in Tables)
+        foreach (Vector4 rect in data.Tables)
         {
             if (RectangleContainsPoint(rect, p))
             {
@@ -719,7 +825,7 @@ public class Model : MonoBehaviour
                 return;
             }
         }
-        foreach (Vector4 rect in Chests)
+        foreach (Vector4 rect in data.Chests)
         {
             if (RectangleContainsPoint(rect, p))
             {
@@ -727,7 +833,7 @@ public class Model : MonoBehaviour
                 return;
             }
         }
-        foreach (Vector4 rect in VacuumStation)
+        foreach (Vector4 rect in data.VacuumStation)
         {
             if (RectangleContainsPoint(rect, p))
             {
@@ -735,7 +841,7 @@ public class Model : MonoBehaviour
                 return;
             }
         }
-        foreach (Vector4 rect in Rooms)
+        foreach (Vector4 rect in data.Rooms)
         {
             if (RectangleContainsPoint(rect, p))
             {
@@ -747,43 +853,45 @@ public class Model : MonoBehaviour
 
     public void RemoveEverything()
     {
-        List<Vector4> toRemove = new List<Vector4>(Rooms);
+        List<Vector4> toRemove = new List<Vector4>(data.Rooms);
         foreach (Vector4 room in toRemove)
         {
             RemoveFloor(room);
         }
-        RandomPath.Clear();
-        points.Clear();
-        SpiralPath.Clear();
-        WallfollowPath.Clear();
-        SnakingPath.Clear();
+        data.RandomPaths.Clear();
+        cleanablePoints.Clear();
+        data.SpiralPaths.Clear();
+        data.WallfollowPaths.Clear();
+        data.SnakingPaths.Clear();
         ChangeFloorType("Hardwood");
+        data.name = "";
+        data.pathingVersion = "v1.2.4";
     }
 
     public Vector4 FindObjectRect(Vector2 p)
     {
-        foreach (Vector4 rect in Tables)
+        foreach (Vector4 rect in data.Tables)
         {
             if (RectangleContainsPoint(rect, p))
             {
                 return rect;
             }
         }
-        foreach (Vector4 rect in Chests)
+        foreach (Vector4 rect in data.Chests)
         {
             if (RectangleContainsPoint(rect, p))
             {
                 return rect;
             }
         }
-        foreach (Vector4 rect in VacuumStation)
+        foreach (Vector4 rect in data.VacuumStation)
         {
             if (RectangleContainsPoint(rect, p))
             {
                 return rect;
             }
         }
-        foreach (Vector4 rect in Rooms)
+        foreach (Vector4 rect in data.Rooms)
         {
             if (RectangleContainsPoint(rect, p))
             {

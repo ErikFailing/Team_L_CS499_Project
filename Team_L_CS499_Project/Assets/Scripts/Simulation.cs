@@ -11,7 +11,7 @@ public class Simulation : MonoBehaviour
 
     public void FindPath()
     {
-        path = Ref.I.Model.RandomPath;
+        path = Ref.I.Model.data.RandomPaths[0].vectorThreeList;
         
         //path = new List<Vector3> {
         //    new Vector3(0.0f, 1.0f, 0.0f),
