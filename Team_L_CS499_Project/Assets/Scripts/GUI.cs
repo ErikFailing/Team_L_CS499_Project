@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
-using UnityEditor;
-using System.IO;
 
 public class GUI : MonoBehaviour
 {
@@ -28,7 +26,6 @@ public class GUI : MonoBehaviour
         Ref.I.HouseSimulationMenu.SetActive(false);
         Ref.I.HouseSimulationHelpOverlay.SetActive(false);
         Ref.I.Model.RemoveEverything();
-        Ref.I.PlanNameInput.GetComponent<TMP_InputField>().text = "";
     }
 
     private void OverlayToggle(GameObject o)
@@ -113,7 +110,6 @@ public class GUI : MonoBehaviour
         }
         Ref.I.MainMenu.SetActive(false);
         Ref.I.LoadSimulationMenu.SetActive(true);
-        InstantiateSaveFileMenus();
     }
 
     public void QuitButtonClick()
@@ -184,10 +180,6 @@ public class GUI : MonoBehaviour
             Ref.I.HousePlannerMenu.SetActive(false);
             Ref.I.HouseSimulationMenu.SetActive(true);
             Ref.I.Model.CalculatePaths();
-            // Create save
-            string saveName = SaveSystem.CreateSaveFile(Ref.I.Model.data.name);
-            SaveSystem.SaveToFile(saveName);
-
         }
         else
         {
@@ -204,11 +196,6 @@ public class GUI : MonoBehaviour
     public void UpdateUncleanableArea(int area)
     {
         Ref.I.UncleanableAreaText.GetComponent<TextMeshProUGUI>().text = "Uncleanable Area (ft^2): " + area;
-    }
-
-    public void HousePlanNameChanged(TextMeshProUGUI tmp)
-    {
-        Ref.I.Model.data.name = tmp.text;
     }
 
 
@@ -260,73 +247,10 @@ public class GUI : MonoBehaviour
 
 
     // Load Simulation GUI Methods
-    public void LoadSimulation(string saveName)
+    public void LoadSimulation()
     {
         Ref.I.LoadSimulationMenu.SetActive(false);
         Ref.I.HouseSimulationMenu.SetActive(true);
-        // Load Simulation
-        SaveSystem.LoadSaveFile(saveName);
-
-        // Delete all current listeners
-        Ref.I.LoadSaveButton.GetComponent<Button>().onClick.RemoveAllListeners();
-        Ref.I.DeleteSaveButton.GetComponent<Button>().onClick.RemoveAllListeners();
-    }
-
-    public void DeleteSimulation(string saveName)
-    {
-        SaveSystem.DeleteSaveFile(saveName);
-        // Delete Button
-        Destroy(Ref.I.LoadSimulationViewport.transform.Find(saveName).gameObject);
-        // Delete all current listeners
-        Ref.I.DeleteSaveButton.GetComponent<Button>().onClick.RemoveAllListeners();
-        Ref.I.LoadSaveButton.GetComponent<Button>().onClick.RemoveAllListeners();
-    }
-
-    public void OpenDatabaseFolder()
-    {
-        EditorUtility.RevealInFinder(Application.persistentDataPath + "/player.log");
-    }
-
-    public void UpdateDeleteSaveListeners(string fileName)
-    {
-        // Delete all current listeners
-        Ref.I.DeleteSaveButton.GetComponent<Button>().onClick.RemoveAllListeners();
-        // Add listener
-        Ref.I.DeleteSaveButton.GetComponent<Button>().onClick.AddListener(delegate { DeleteSimulation(fileName); });
-    }
-    public void UpdateLoadSaveListeners(string fileName)
-    {
-        // Delete all current listeners
-        Ref.I.LoadSaveButton.GetComponent<Button>().onClick.RemoveAllListeners();
-        // Add listener
-        Ref.I.LoadSaveButton.GetComponent<Button>().onClick.AddListener(delegate { LoadSimulation(fileName); });
-    }
-
-
-    /// <summary>
-    /// Instantiates the gameFileMenus in the load game menu
-    /// </summary>
-    private void InstantiateSaveFileMenus()
-    {
-        //Destroy any current loadSaveFile buttons
-        for (int i = Ref.I.LoadSimulationViewport.childCount-1; i >= 0; i--)
-        {
-            Destroy(Ref.I.LoadSimulationViewport.GetChild(i).gameObject);
-        }
-        
-        //Instantiate a game file menu for each saved game
-        foreach (string saveName in SaveSystem.GetSaves())
-        {
-            //Instantiate a menu corresponding to the saved game
-            GameObject saveFileButton = Instantiate(Ref.I.saveFileMenuPrefab, Ref.I.LoadSimulationViewport);
-            // Set text & Name
-            saveFileButton.name = saveName;
-            saveFileButton.transform.Find("Name").GetComponent<TextMeshProUGUI>().text = saveName;
-
-            //Assign the onclick functions to the buttons
-            saveFileButton.GetComponent<Button>().onClick.AddListener(delegate { UpdateLoadSaveListeners(saveName); });
-            saveFileButton.GetComponent<Button>().onClick.AddListener(delegate { UpdateDeleteSaveListeners(saveName); });
-        }
     }
 
 }

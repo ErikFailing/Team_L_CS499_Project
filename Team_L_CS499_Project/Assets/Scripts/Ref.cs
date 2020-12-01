@@ -40,10 +40,6 @@ public class Ref : MonoBehaviour
     public GameObject HundredSpeedButton;
     public GameObject SquareFeetText;
     public GameObject UncleanableAreaText;
-    public Transform LoadSimulationViewport;
-    public GameObject LoadSaveButton;
-    public GameObject DeleteSaveButton;
-    public GameObject PlanNameInput;
 
     [Header("Prefabs")]
     public GameObject FloorPrefab;
@@ -53,11 +49,7 @@ public class Ref : MonoBehaviour
     public GameObject ChestPrefab;
     public GameObject VacuumPrefab;
     public GameObject PointPrefab;
-<<<<<<< HEAD
     public GameObject TrailPrefab;
-=======
-    public GameObject saveFileMenuPrefab;
->>>>>>> New_Merge_Branch
 
     [Header("Materials")]
     public Material Hardwood;
