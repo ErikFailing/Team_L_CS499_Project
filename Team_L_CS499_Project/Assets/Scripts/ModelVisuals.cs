@@ -277,7 +277,7 @@ public class ModelVisuals : MonoBehaviour
         GameObject go = Instantiate(Ref.I.FloorPrefab, Utility.PosFromRect(floor), new Quaternion(), Ref.I.Floors.transform);
         go.transform.localScale = Utility.ScaleFromRect(floor);
         // Set correct floor type
-        DisplayFloorType(Ref.I.Model.FlooringType);
+        DisplayFloorType(Ref.I.Model.data.FlooringType);
 
         DisplayedRooms.Add(floor, go);
     }
