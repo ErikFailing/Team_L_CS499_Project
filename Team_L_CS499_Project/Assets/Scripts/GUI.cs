@@ -133,6 +133,7 @@ public class GUI : MonoBehaviour
     public void FloorTypeDropdownValueChanged(TextMeshProUGUI tmpro)
     {
         Ref.I.Model.ChangeFloorType(tmpro.text);
+        Ref.I.Simulation.ChangeFloorType(tmpro.text);
     }
 
     public void PlaceTableButtonClick()
@@ -198,12 +199,12 @@ public class GUI : MonoBehaviour
 
     public void UpdateSquareFootage(int total)
     {
-        Ref.I.SquareFeetText.GetComponent<TextMeshProUGUI>().text = "Total Area (ft^2): " + total;
+        Ref.I.SquareFeetText.GetComponent<TextMeshProUGUI>().text = "Total Area:\n" + total + " ft<sup>2</sup>";
     }
 
     public void UpdateUncleanableArea(int area)
     {
-        Ref.I.UncleanableAreaText.GetComponent<TextMeshProUGUI>().text = "Uncleanable Area (ft^2): " + area;
+        Ref.I.UncleanableAreaText.GetComponent<TextMeshProUGUI>().text = "Uncleanable Area:\n" + area + " ft<sup>2</sup>";
     }
 
     public void HousePlanNameChanged(TextMeshProUGUI tmp)
@@ -256,6 +257,11 @@ public class GUI : MonoBehaviour
         Ref.I.OneSpeedButton.GetComponent<Button>().interactable = true;
         Ref.I.FiftySpeedButton.GetComponent<Button>().interactable = true;
         Ref.I.HundredSpeedButton.GetComponent<Button>().interactable = false;
+    }
+
+    public void SummaryButtonClick()
+    {
+        OverlayToggle(Ref.I.SummaryOverlay);
     }
 
 

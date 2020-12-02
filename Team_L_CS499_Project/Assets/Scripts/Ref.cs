@@ -44,6 +44,15 @@ public class Ref : MonoBehaviour
     public GameObject LoadSaveButton;
     public GameObject DeleteSaveButton;
     public GameObject PlanNameInput;
+    public GameObject SimFloorTypeText;
+    public GameObject SimCoverageText;
+    public GameObject SimDurationText;
+    public GameObject SimRemainingText;
+    public GameObject SummaryOverlay;
+    public GameObject SummaryRandomText;
+    public GameObject SummarySpiralText;
+    public GameObject SummarySnakingText;
+    public GameObject SummaryWallFollowText;
 
     [Header("Prefabs")]
     public GameObject FloorPrefab;
