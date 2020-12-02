@@ -305,10 +305,10 @@ public class GUI : MonoBehaviour
         Ref.I.LoadSaveButton.GetComponent<Button>().onClick.RemoveAllListeners();
     }
 
-    public void OpenDatabaseFolder()
-    {
-        EditorUtility.RevealInFinder(Application.persistentDataPath + "/player.log");
-    }
+    //public void OpenDatabaseFolder()
+    //{
+    //    EditorUtility.RevealInFinder(Application.persistentDataPath + "/player.log");
+    //}
 
     public void UpdateDeleteSaveListeners(string fileName)
     {
