@@ -151,7 +151,7 @@ public class Model : MonoBehaviour
             Vector3 target = ray.GetPoint(distance);
             // While going towards target, if there sphere cast left goes a large distance
             // Skip this check on the first loop
-            float currentDistance = 0.5f;
+            float currentDistance = 1f;
             while (currentDistance < distance && totalDist > 0)
             {
                 
@@ -214,15 +214,53 @@ public class Model : MonoBehaviour
     }
 
 
+    public float CalculateCoveragePercentage()
+    {
+        float maxCleanliness = cleanablePoints.Keys.Count * 150;
+        float currentCleanliness = 0;
+        foreach (Vector2 key in cleanablePoints.Keys)
+        {
+            if (cleanablePoints.ContainsKey(key))
+            {
+                currentCleanliness += cleanablePoints[key];
+            }
+        }
+
+        return (currentCleanliness / maxCleanliness);
+    }
+
+
     // Takes in the distance the robot is into the path and adjusts 
     // the model to represent current cleanliness
     // distance is how far (in inches) the robot is along the path
-    public void CalculateCleanliness(float distance)
+    public void CalculateCleanliness(int distance)
     {
+        if (distance < 1) return;
+        
+        // Reset points
+        ResetPoints();
+        
         // Need to make this switch based on current path
-        List<Vector3> path = data.RandomPaths[0].vectorThreeList;
+        List<Vector3> path = new List<Vector3>();
+        if (Ref.I.Simulation.algorithmType == "Random")
+        {
+            path = data.RandomPaths[0].vectorThreeList;
+        }
+        else if (Ref.I.Simulation.algorithmType == "Spiral")
+        {
+            path = data.SpiralPaths[0].vectorThreeList;
+        }
+        else if (Ref.I.Simulation.algorithmType == "Snaking")
+        {
+            path = data.SnakingPaths[0].vectorThreeList;
+        }
+        else if (Ref.I.Simulation.algorithmType == "Wall follow")
+        {
+            path = data.WallfollowPaths[0].vectorThreeList;
+        }
 
         float distanceCovered = 0;
+        //float distanceToMove = distanceDesired - currentDistance;
         Vector3 currentPos = path[0];
         int targetIndex = 1;
         float cleaningEfficieny = 0;
@@ -253,7 +291,7 @@ public class Model : MonoBehaviour
             List<Vector2> vacuumPoints = GetPointsWithinCircle(new Vector2(currentPos.x, currentPos.z), 5.8f);
             foreach (Vector2 p in vacuumPoints)
             {
-                cleanablePoints[p] += cleaningEfficieny;
+                cleanablePoints[p] = Mathf.Clamp(cleanablePoints[p] + cleaningEfficieny, 0, 150);
             }
             // Whiskers
             List<Vector2> whiskerPoints = GetPointsWithinCircle(new Vector2(currentPos.x, currentPos.z), 13.5f);
@@ -264,11 +302,12 @@ public class Model : MonoBehaviour
             }
             foreach (Vector2 p in whiskerPoints)
             {
-                cleanablePoints[p] += cleaningEfficieny * 0.7f;
+                cleanablePoints[p] = Mathf.Clamp(cleanablePoints[p] + (cleaningEfficieny * 0.7f), 0, 150);
             }
 
             // Advance current position one inch along the path
             float remainingDistance = 1;
+            int timesLooped = 0;
             while (remainingDistance > 0)
             {
                 float distanceToNextPoint = Vector3.Distance(currentPos, path[targetIndex]);
@@ -285,9 +324,15 @@ public class Model : MonoBehaviour
                     currentPos = Vector3.MoveTowards(currentPos, path[targetIndex], remainingDistance);
                     remainingDistance -= remainingDistance;
                 }
+                if (timesLooped > 50)
+                {
+                    Debug.LogWarning("INFINITE LOOP, EXITING");
+                    break;
+                }
+                timesLooped++;
             }
-            
-            
+
+
             distanceCovered += 1;
         }
 
@@ -299,7 +344,7 @@ public class Model : MonoBehaviour
         List<Vector2> pList = new List<Vector2>();
         for (float x = center.x-radius-1; x < center.x+radius+1; x +=1)
         {
-            for (float y = center.y - radius - 1; y < center.y + radius + 1; x += 1)
+            for (float y = center.y - radius - 1; y < center.y + radius + 1; y += 1)
             {
                 Vector2 p = new Vector2(Mathf.Round(x), Mathf.Round(y));
                 if (cleanablePoints.ContainsKey(p) && Vector2.Distance(p, center) <= radius)
@@ -314,9 +359,11 @@ public class Model : MonoBehaviour
 
     public void ResetPoints()
     {
-        foreach (Vector2 p in cleanablePoints.Keys)
+        List<Vector2> keys = new List<Vector2>(cleanablePoints.Keys);
+        cleanablePoints.Clear();
+        foreach (Vector2 p in keys)
         {
-            cleanablePoints[p] = 0;
+            cleanablePoints.Add(p, 0);
         }
     }
 
@@ -344,10 +391,16 @@ public class Model : MonoBehaviour
             errorMsg = "ERROR: House plan must have a name";
             return false;
         }
-        // If house has one room, return true
-        if (data.Rooms.Count == 1) return true;
-        // All rooms must have atleast one door
         CalculatePoints();
+        // If house has one room, return true
+        if (data.Rooms.Count == 1)
+        {
+            //Ref.I.ModelVisuals.DisplayNewPoints(cleanablePoints);
+            //Debug.Log(cleanablePoints.Keys.Count);
+            return true;
+        }
+        // All rooms must have atleast one door
+        
         // If each room has a point along its edge, return true
         // Else, a room lacks a door or is otherwise unenterable, return false
         foreach (Vector4 room in data.Rooms)
@@ -382,7 +435,8 @@ public class Model : MonoBehaviour
             }
             
         }
-        //Ref.I.ModelVisuals.DisplayNewPoints(points);
+        //Ref.I.ModelVisuals.DisplayNewPoints(cleanablePoints);
+        //Debug.Log(cleanablePoints.Keys.Count);
         return true;
     }
     
@@ -392,9 +446,9 @@ public class Model : MonoBehaviour
         foreach (Vector4 room in data.Rooms)
         {
             // Add points that are contained in rooms
-            for (int x = (int)room.x; x <= room.z; x++)
+            for (int x = (int)room.x; x <= room.z; x +=2)
             {
-                for (int y = (int)room.y; y >= room.w; y--)
+                for (int y = (int)room.y; y >= room.w; y -=2)
                 {
                     Vector2 point = new Vector2(x, y);
                     // Only add if it isn't already added
