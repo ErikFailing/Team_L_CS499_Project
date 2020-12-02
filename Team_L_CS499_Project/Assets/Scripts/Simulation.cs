@@ -13,7 +13,9 @@ public class Simulation : MonoBehaviour
     
     private GameObject vacuum;
     private List<Vector3> path;
-    private bool paused = false;
+    private bool paused;
+    private bool pathFinished;
+    private bool autopilotFinished;
 
     private string algorithmType;
     private string floorType;
@@ -32,6 +34,8 @@ public class Simulation : MonoBehaviour
         simNum = 0;
 
         paused = false;
+        pathFinished = false;
+        autopilotFinished = false;
 
         algorithmType = "Random";
         floorType = "Hardwood";
@@ -72,18 +76,22 @@ public class Simulation : MonoBehaviour
         if (algorithmType == "Random")
         {
             path = Ref.I.Model.data.RandomPaths[0].vectorThreeList;
+            simNum = 0;
         }
         else if (algorithmType == "Spiral")
         {
             path = Ref.I.Model.data.SpiralPaths[0].vectorThreeList;
+            simNum = 1;
         }
         else if (algorithmType == "Snaking")
         {
             path = Ref.I.Model.data.SnakingPaths[0].vectorThreeList;
+            simNum = 2;
         }
         else if (algorithmType == "Wall follow")
         {
             path = Ref.I.Model.data.WallfollowPaths[0].vectorThreeList;
+            simNum = 3;
         }
     }
 
@@ -116,6 +124,7 @@ public class Simulation : MonoBehaviour
     public void PauseSimulation()
     {
         paused = true;
+        autopilotFinished = true;
         if (path != null)
         {
             StopCoroutine("FollowPath");
@@ -125,16 +134,43 @@ public class Simulation : MonoBehaviour
     public void StopSimulation()
     {
         paused = false;
+        autopilotFinished = true;
         if (path != null)
         {
             StopCoroutine("FollowPath");
             pathPosition = 0;
-            durations[simNum] = 0.0f;
-            coverages[simNum] = 0.0f;
-            vacuum.transform.position = path[pathPosition];
-            vacuum.transform.GetChild(1).GetComponent<TrailRenderer>().Clear();
-            vacuum.transform.GetChild(2).GetComponent<TrailRenderer>().Clear();
+            if (!pathFinished)
+            {
+                durations[simNum] = 0.0f;
+                coverages[simNum] = 0.0f;
+                vacuum.transform.position = path[pathPosition];
+                vacuum.transform.GetChild(1).GetComponent<TrailRenderer>().Clear();
+                vacuum.transform.GetChild(2).GetComponent<TrailRenderer>().Clear();
+            }
         }
+    }
+
+    private void Autopilot()
+    {
+        if (algorithmType == "Random")
+        {
+            //simNum = 1;
+            //ChangeAlgorithm("Spiral");
+            simNum = 4;
+            ChangeAlgorithm("Wall follow");
+            autopilotFinished = true;
+        }
+        // else if (algorithmType == "Spiral")
+        // {
+        //     simNum = 2;
+        //     ChangeAlgorithm("Snaking");
+        // }
+        // else if (algorithmType == "Snaking")
+        // {
+        //     simNum = 3;
+        //     ChangeAlgorithm("Wall follow");
+        //     autopilotFinished = true;
+        // }
     }
 
     public void ChangeFloorType(string type)
@@ -229,6 +265,15 @@ public class Simulation : MonoBehaviour
                 else
                 {
                     elapsedTime = duration;
+                    if (!paused)
+                    {
+                        pathFinished = true;
+                        Ref.I.PathingDropdown.GetComponent<TMP_Dropdown>().interactable = true;
+                        if (!autopilotFinished)
+                        {
+                            Invoke("Autopilot", 5.0f);
+                        }
+                    }
                 }
             }
             pathPosition++;
