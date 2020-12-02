@@ -137,7 +137,8 @@ public class Simulation : MonoBehaviour
     {
         paused = false;
         //autopilotFinished = true;
-        if (path != null)
+        //if (path != null)
+        if (path != null && path.Count > 0)
         {
             StopCoroutine("FollowPath");
             pathPosition = 0;
