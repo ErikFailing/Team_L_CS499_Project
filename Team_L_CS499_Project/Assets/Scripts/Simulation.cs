@@ -21,6 +21,8 @@ public class Simulation : MonoBehaviour
     private List<string> algorithms;
     private List<float> durations;
     private List<float> coverages;
+
+    private Gradient trailGradient;
     
 
     void Start()
@@ -39,7 +41,6 @@ public class Simulation : MonoBehaviour
         algorithms = new List<string>(){"Random", "Spiral", "Snaking", "Wall follow"};
         durations = new List<float>(){0.0f, 0.0f, 0.0f, 0.0f};
         coverages = new List<float>(){0.0f, 0.0f, 0.0f, 0.0f};
-
     }
 
     public void Reset()
@@ -55,8 +56,6 @@ public class Simulation : MonoBehaviour
         algorithms = new List<string>(){"Random", "Spiral", "Snaking", "Wall follow"};
         durations = new List<float>(){0.0f, 0.0f, 0.0f, 0.0f};
         coverages = new List<float>(){0.0f, 0.0f, 0.0f, 0.0f};
-
-        
     }
 
     private void AddNewSim(string algorithm)
@@ -70,7 +69,21 @@ public class Simulation : MonoBehaviour
 
     public void FindPath()
     {
-        path = Ref.I.Model.data.RandomPaths[0].vectorThreeList;
+        switch (algorithmType)
+        {
+            case "Random":
+                path = Ref.I.Model.data.RandomPaths[0].vectorThreeList;
+                break;
+            case "Spiral":
+                path = null;
+                break;
+            case "Snaking":
+                path = null;
+                break;
+            case "Wall follow":
+                path = Ref.I.Model.data.WallfollowPaths[0].vectorThreeList;
+                break;
+        }
     }
 
     public void StartSimulation()
@@ -79,6 +92,12 @@ public class Simulation : MonoBehaviour
         if (vacuum == null)
         {
             vacuum = Ref.I.Vacuum;
+            if (trailGradient == null)
+            {
+                ChangeFloorType(floorType);
+            }
+            vacuum.transform.GetChild(1).GetComponent<TrailRenderer>().colorGradient = trailGradient;
+            vacuum.transform.GetChild(2).GetComponent<TrailRenderer>().colorGradient = trailGradient;
         }
         if (path == null)
         {
@@ -120,6 +139,28 @@ public class Simulation : MonoBehaviour
     public void ChangeFloorType(string type)
     {
         floorType = type;
+
+        float alpha = 0.0f;
+        switch (type)
+        {
+            case "Hardwood":
+                alpha = 0.4f;
+                break;
+            case "Loop Pile Carpet":
+                alpha = 0.3f;
+                break;
+            case "Cut Pile Carpet":
+                alpha = 0.2f;
+                break;
+            case "Frieze-cut Pile Carpet":
+                alpha = 0.1f;
+                break;
+        }
+        trailGradient = new Gradient();
+        trailGradient.SetKeys(
+            new GradientColorKey[] {new GradientColorKey(Color.blue, 0.0f), new GradientColorKey(Color.blue, 1.0f)},
+            new GradientAlphaKey[] {new GradientAlphaKey(alpha, 0.0f), new GradientAlphaKey(alpha, 1.0f)}
+        );
     }
 
     public void ChangeSpeed(float speed)
@@ -130,6 +171,7 @@ public class Simulation : MonoBehaviour
     public void ChangeAlgorithm(string algorithm)
     {
         algorithmType = algorithm;
+        path = null;
         pathPosition = 0;
         vacuum.transform.position = path[0];
     }
@@ -224,23 +266,6 @@ public class Simulation : MonoBehaviour
         sb.Append(RemainingBattery(durations[simNum]));
         sb.Append(" Minutes");
         return sb.ToString();
-    }
-
-    private string AlgorithmToString(int algorithm)
-    {
-        switch (algorithm)
-        {
-            case 0:
-                return "Random";
-            case 1:
-                return "Spiral";
-            case 2:
-                return "Snaking";
-            case 3:
-                return "Wall follow";
-            default:
-                return "Undefined";
-        }
     }
 
     private int RemainingBattery(float duration)
