@@ -85,8 +85,9 @@ public class Model : MonoBehaviour
             else // Only go the remaning distance until the vacuum runs out of battery
             {
                 float remainingDist = -totalDist + 27000;
-                data.RandomPaths[pathIndex].vectorThreeList.Add(target);
+                data.RandomPaths[pathIndex].vectorThreeList.Add(ray.GetPoint(remainingDist));
                 totalDist += remainingDist;
+                break;
             }
             
             if (Physics.OverlapSphere(target, 6.4f).Length > 0)
@@ -127,11 +128,89 @@ public class Model : MonoBehaviour
     }
     public void CalculateSpiralPath()
     {
-
+        Debug.Log("Creating spiral path");
     }
     public void CalculateWallFollowPath()
     {
+        // Add new path to WallfollowPaths
+        data.WallfollowPaths.Add(new VectorThreeListWrapper(new List<Vector3>()));
 
+        // Setup
+        int pathIndex = data.WallfollowPaths.Count - 1;
+        float totalDist = 0;
+        Vector3 startPos = Ref.I.Vacuum.transform.position;
+
+        // Add starting position to path
+        data.WallfollowPaths[pathIndex].vectorThreeList.Add(startPos);
+
+        while (totalDist < 27000)
+        {
+            Ray ray = new Ray(Ref.I.Vacuum.transform.position, Ref.I.Vacuum.transform.forward);
+            Physics.SphereCast(ray, 6.4f, out RaycastHit hitInfo);
+            float distance = hitInfo.distance - 0.1f;
+            Vector3 target = ray.GetPoint(distance);
+            // While going towards target, if there sphere cast left goes a large distance
+            // Skip this check on the first loop
+            float currentDistance = 0.5f;
+            while (currentDistance < distance && totalDist > 0)
+            {
+                
+                Ray leftRay = new Ray(ray.GetPoint(currentDistance), -Ref.I.Vacuum.transform.right);
+                Physics.SphereCast(leftRay, 6.4f, out RaycastHit leftHitInfo);
+                if (leftHitInfo.distance > 2)
+                {
+                    // Turn Left
+                    Ref.I.Vacuum.transform.Rotate(0, -100, 0);
+                    // Set new target
+                    target = ray.GetPoint(currentDistance);
+                    // Set distance
+                    distance = currentDistance;
+                    // break
+                    break;
+                }
+                currentDistance += 0.5f;
+            }
+            // If vacuum can make the full distance without running out of battery, go the distance
+            if (totalDist + distance <= 27000)
+            {
+                data.WallfollowPaths[pathIndex].vectorThreeList.Add(target);
+                totalDist += distance;
+            }
+            else // Only go the remaining distance until the vacuum runs out of battery
+            {
+                float remainingDist = -totalDist + 27000;
+                data.WallfollowPaths[pathIndex].vectorThreeList.Add(ray.GetPoint(remainingDist));
+                totalDist += remainingDist;
+                break;
+            }
+
+            if (Physics.OverlapSphere(target, 6.4f).Length > 0)
+            {
+                Debug.LogWarning("WARNING: Random Path may be incorrect.");
+            }
+
+
+            // Turn until robot can move forward again
+            while (true)
+            {
+                // Turn
+                Ref.I.Vacuum.transform.Rotate(0, 1, 0);
+                // Spherecast
+                Ray forwardRay = new Ray(target, Ref.I.Vacuum.transform.forward);
+                Physics.SphereCast(forwardRay, 6.4f, out RaycastHit forwardHitInfo);
+                if (forwardHitInfo.distance > 0.7)
+                {
+                    break;
+                }
+            }
+            
+            // Move vacuum
+            Ref.I.Vacuum.transform.position = target;
+        }
+
+        // Reset vacuum
+        Ref.I.Vacuum.transform.position = startPos;
+        Ref.I.Vacuum.transform.rotation = new Quaternion();
     }
 
 

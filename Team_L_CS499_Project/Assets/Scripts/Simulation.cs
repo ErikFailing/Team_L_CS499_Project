@@ -70,7 +70,22 @@ public class Simulation : MonoBehaviour
 
     public void FindPath()
     {
-        path = Ref.I.Model.data.RandomPaths[0].vectorThreeList;
+        if (algorithmType == "Random")
+        {
+            path = Ref.I.Model.data.RandomPaths[0].vectorThreeList;
+        }
+        else if (algorithmType == "Spiral")
+        {
+            path = Ref.I.Model.data.SpiralPaths[0].vectorThreeList;
+        }
+        else if (algorithmType == "Snaking")
+        {
+            path = Ref.I.Model.data.SnakingPaths[0].vectorThreeList;
+        }
+        else if (algorithmType == "Wall follow")
+        {
+            path = Ref.I.Model.data.WallfollowPaths[0].vectorThreeList;
+        }
     }
 
     public void StartSimulation()
@@ -129,9 +144,9 @@ public class Simulation : MonoBehaviour
 
     public void ChangeAlgorithm(string algorithm)
     {
+        StopSimulation();
         algorithmType = algorithm;
-        pathPosition = 0;
-        vacuum.transform.position = path[0];
+        FindPath();
     }
 
     void Update()
