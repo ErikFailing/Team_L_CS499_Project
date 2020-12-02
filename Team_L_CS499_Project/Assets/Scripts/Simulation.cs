@@ -48,12 +48,15 @@ public class Simulation : MonoBehaviour
         
         pathPosition = 0;
         simNum = 0;
+        path = null;
 
         paused = false;
         
         algorithms = new List<string>(){"Random", "Spiral", "Snaking", "Wall follow"};
         durations = new List<float>(){0.0f, 0.0f, 0.0f, 0.0f};
         coverages = new List<float>(){0.0f, 0.0f, 0.0f, 0.0f};
+
+        
     }
 
     private void AddNewSim(string algorithm)

@@ -88,12 +88,11 @@ public class Model : MonoBehaviour
                 data.RandomPaths[pathIndex].vectorThreeList.Add(target);
                 totalDist += remainingDist;
             }
-
+            
             if (Physics.OverlapSphere(target, 6.4f).Length > 0)
             {
                 Debug.LogWarning("WARNING: Random Path may be incorrect.");
             }
-
 
             // Decide which way to turn
             // Cast two spheres, one to the left and another to the right
@@ -863,6 +862,8 @@ public class Model : MonoBehaviour
         data.SpiralPaths.Clear();
         data.WallfollowPaths.Clear();
         data.SnakingPaths.Clear();
+        data.cleanablePointsValues.Clear();
+        data.cleanablePointsVectors.Clear();
         ChangeFloorType("Hardwood");
         data.name = "";
         data.pathingVersion = "v1.2.4";

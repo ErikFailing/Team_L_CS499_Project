@@ -27,9 +27,9 @@ public class GUI : MonoBehaviour
         Ref.I.LoadSimulationHelpOverlay.SetActive(false);
         Ref.I.HouseSimulationMenu.SetActive(false);
         Ref.I.HouseSimulationHelpOverlay.SetActive(false);
-        Ref.I.Model.RemoveEverything();
         StopButtonClick();
         Ref.I.Simulation.Reset();
+        Ref.I.Model.RemoveEverything();
         Ref.I.PlanNameInput.GetComponent<TMP_InputField>().text = "";
     }
 
@@ -243,13 +243,8 @@ public class GUI : MonoBehaviour
 
     public void SaveSimulation()
     {
-        Ref.I.MainMenu.SetActive(true);
-        Ref.I.HouseSimulationMenu.SetActive(false);
-
-        // Maybe RemoveEverything() isn't needed here?
-        Ref.I.Model.RemoveEverything();
-        StopButtonClick();
-        Ref.I.Simulation.Reset();
+        SaveSystem.SaveToFile(Ref.I.Model.data.name);
+        BackButtonClick();
     }
 
     public void OneSpeedButtonClick()
