@@ -15,7 +15,7 @@ public class Simulation : MonoBehaviour
     private List<Vector3> path;
     private bool paused;
     private bool pathFinished;
-    private bool autopilotFinished;
+    //private bool autopilotFinished;
 
     public string algorithmType;
     private string floorType;
@@ -37,7 +37,7 @@ public class Simulation : MonoBehaviour
 
         paused = false;
         pathFinished = false;
-        autopilotFinished = false;
+        //autopilotFinished = false;
 
         algorithmType = "Random";
         floorType = "Hardwood";
@@ -126,7 +126,7 @@ public class Simulation : MonoBehaviour
     public void PauseSimulation()
     {
         paused = true;
-        autopilotFinished = true;
+        //autopilotFinished = true;
         if (path != null)
         {
             StopCoroutine("FollowPath");
@@ -136,7 +136,7 @@ public class Simulation : MonoBehaviour
     public void StopSimulation()
     {
         paused = false;
-        autopilotFinished = true;
+        //autopilotFinished = true;
         if (path != null)
         {
             StopCoroutine("FollowPath");
@@ -145,10 +145,10 @@ public class Simulation : MonoBehaviour
             {
                 durations[simNum] = 0.0f;
                 coverages[simNum] = 0.0f;
-                vacuum.transform.position = path[pathPosition];
-                vacuum.transform.GetChild(1).GetComponent<TrailRenderer>().Clear();
-                vacuum.transform.GetChild(2).GetComponent<TrailRenderer>().Clear();
             }
+            vacuum.transform.position = path[pathPosition];
+            vacuum.transform.GetChild(1).GetComponent<TrailRenderer>().Clear();
+            vacuum.transform.GetChild(2).GetComponent<TrailRenderer>().Clear();
         }
     }
 
@@ -158,9 +158,9 @@ public class Simulation : MonoBehaviour
         {
             //simNum = 1;
             //ChangeAlgorithm("Spiral");
-            simNum = 4;
+            simNum = 3;
             ChangeAlgorithm("Wall follow");
-            autopilotFinished = true;
+            //autopilotFinished = true;
         }
         // else if (algorithmType == "Spiral")
         // {
@@ -280,10 +280,11 @@ public class Simulation : MonoBehaviour
                     {
                         pathFinished = true;
                         Ref.I.PathingDropdown.GetComponent<TMP_Dropdown>().interactable = true;
-                        if (!autopilotFinished)
-                        {
-                            Invoke("Autopilot", 5.0f);
-                        }
+                        
+                        // if (!autopilotFinished)
+                        // {
+                        //     //Invoke("Autopilot", 5.0f);
+                        // }
                     }
                 }
             }
@@ -358,7 +359,7 @@ public class Simulation : MonoBehaviour
         sb.Append(RemainingBattery(durations[num]));
         sb.AppendLine(" Minutes");
         sb.Append("Coverage: ");
-        sb.Append(coverages[num].ToString("0.00"));
+        sb.Append(coverages[num].ToString("0.00%"));
         return sb.ToString();
     }
 }
