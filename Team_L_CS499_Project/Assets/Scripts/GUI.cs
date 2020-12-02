@@ -28,6 +28,8 @@ public class GUI : MonoBehaviour
         Ref.I.HouseSimulationMenu.SetActive(false);
         Ref.I.HouseSimulationHelpOverlay.SetActive(false);
         Ref.I.Model.RemoveEverything();
+        StopButtonClick();
+        Ref.I.Simulation.Reset();
         Ref.I.PlanNameInput.GetComponent<TMP_InputField>().text = "";
     }
 
@@ -216,23 +218,38 @@ public class GUI : MonoBehaviour
     // House Simulation GUI Methods
     public void PlayButtonClick()
     {
+        Ref.I.PlayButton.GetComponent<Button>().interactable = false;
         Ref.I.Simulation.StartSimulation();
+        Ref.I.PauseButton.GetComponent<Button>().interactable = true;
+        Ref.I.StopButton.GetComponent<Button>().interactable = true;
+        Ref.I.PathingDropdown.GetComponent<TMP_Dropdown>().interactable = false;
     }
 
     public void PauseButtonClick()
     {
+        Ref.I.PauseButton.GetComponent<Button>().interactable = false;
         Ref.I.Simulation.PauseSimulation();
+        Ref.I.PlayButton.GetComponent<Button>().interactable = true;
     }
 
     public void StopButtonClick()
     {
+        Ref.I.StopButton.GetComponent<Button>().interactable = false;
         Ref.I.Simulation.StopSimulation();
+        Ref.I.PauseButton.GetComponent<Button>().interactable = false;
+        Ref.I.PlayButton.GetComponent<Button>().interactable = true;
+        Ref.I.PathingDropdown.GetComponent<TMP_Dropdown>().interactable = true;
     }
 
     public void SaveSimulation()
     {
         Ref.I.MainMenu.SetActive(true);
         Ref.I.HouseSimulationMenu.SetActive(false);
+
+        // Maybe RemoveEverything() isn't needed here?
+        Ref.I.Model.RemoveEverything();
+        StopButtonClick();
+        Ref.I.Simulation.Reset();
     }
 
     public void OneSpeedButtonClick()
@@ -262,6 +279,11 @@ public class GUI : MonoBehaviour
     public void SummaryButtonClick()
     {
         OverlayToggle(Ref.I.SummaryOverlay);
+    }
+
+    public void PathAlgorithmDropdownValueChanged(TextMeshProUGUI tmpro)
+    {
+        Ref.I.Simulation.ChangeAlgorithm(tmpro.text);
     }
 
 

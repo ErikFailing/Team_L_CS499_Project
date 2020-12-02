@@ -53,6 +53,10 @@ public class Ref : MonoBehaviour
     public GameObject SummarySpiralText;
     public GameObject SummarySnakingText;
     public GameObject SummaryWallFollowText;
+    public GameObject PlayButton;
+    public GameObject PauseButton;
+    public GameObject StopButton;
+    public GameObject PathingDropdown;
 
     [Header("Prefabs")]
     public GameObject FloorPrefab;

@@ -7,19 +7,63 @@ using TMPro;
 
 public class Simulation : MonoBehaviour
 {
-    private float speed = 1.0f;
-    private int pathPosition = 1;
+    private float speed;
+    private int pathPosition;
+    private int simNum;
+    
     private GameObject vacuum;
     private List<Vector3> path;
     private bool paused = false;
 
-    // 0 Random, 1 Spiral, 2 Snaking, 3 Wall follow
-    private int pathAlgorithm;
-    private string floorType = "Hardwood";
+    private string algorithmType;
+    private string floorType;
 
-    // [0] Random, [1] Spiral, [2] Snaking, [3] Wall follow
-    private float[] durations = new float[4] {0.0f, 0.0f, 0.0f, 0.0f};
-    private float[] coverages = new float[4] {0.0f, 0.0f, 0.0f, 0.0f};
+    private List<string> algorithms;
+    private List<float> durations;
+    private List<float> coverages;
+    
+
+    void Start()
+    {
+        speed = 1.0f;
+        pathPosition = 0;
+        simNum = 0;
+
+        paused = false;
+
+        algorithmType = "Random";
+        floorType = "Hardwood";
+
+        // By default indicies 0 to 3 in order are Random, Spiral, Snaking, and Wall follow
+        
+        algorithms = new List<string>(){"Random", "Spiral", "Snaking", "Wall follow"};
+        durations = new List<float>(){0.0f, 0.0f, 0.0f, 0.0f};
+        coverages = new List<float>(){0.0f, 0.0f, 0.0f, 0.0f};
+
+    }
+
+    public void Reset()
+    {
+        StopCoroutine("FollowPath");
+        
+        pathPosition = 0;
+        simNum = 0;
+
+        paused = false;
+        
+        algorithms = new List<string>(){"Random", "Spiral", "Snaking", "Wall follow"};
+        durations = new List<float>(){0.0f, 0.0f, 0.0f, 0.0f};
+        coverages = new List<float>(){0.0f, 0.0f, 0.0f, 0.0f};
+    }
+
+    private void AddNewSim(string algorithm)
+    {
+        simNum = algorithms.Count;
+        algorithms.Add(algorithm);
+        durations.Add(0.0f);
+        coverages.Add(0.0f);
+        // Rerun algorithm and set the path to it
+    }
 
     public void FindPath()
     {
@@ -43,13 +87,6 @@ public class Simulation : MonoBehaviour
             {
                 StartCoroutine("FollowPath");
             }
-            else
-            {
-                if (!paused)
-                {
-                    //Invoke("", 5)
-                }
-            }
         }
     }
 
@@ -68,9 +105,12 @@ public class Simulation : MonoBehaviour
         if (path != null)
         {
             StopCoroutine("FollowPath");
-            pathPosition = 1;
+            pathPosition = 0;
+            durations[simNum] = 0.0f;
+            coverages[simNum] = 0.0f;
             vacuum.transform.position = path[pathPosition];
-            vacuum.GetComponent<TrailRenderer>().Clear();
+            vacuum.transform.GetChild(1).GetComponent<TrailRenderer>().Clear();
+            vacuum.transform.GetChild(2).GetComponent<TrailRenderer>().Clear();
         }
     }
 
@@ -84,11 +124,11 @@ public class Simulation : MonoBehaviour
         this.speed = speed;
     }
 
-    public void ChangeAlgorithm(int algorithm)
+    public void ChangeAlgorithm(string algorithm)
     {
-        pathAlgorithm = algorithm;
-        pathPosition = 1;
-        vacuum.transform.position = path[pathPosition];
+        algorithmType = algorithm;
+        pathPosition = 0;
+        vacuum.transform.position = path[0];
     }
 
     void Update()
@@ -96,6 +136,7 @@ public class Simulation : MonoBehaviour
         // Coverage
         if (vacuum != null)
         {
+            // Also need to retrieve the value here, not just calculate it
             //Ref.I.Model.CalculateCleanliness(durations[0] * 3);
         }
         // GUI
@@ -124,7 +165,7 @@ public class Simulation : MonoBehaviour
             float currentSpeed = speed;
             while (elapsedTime < duration)
             {
-                if (!paused && RemainingBattery(durations[pathAlgorithm]) > 0)
+                if (!paused && RemainingBattery(durations[simNum]) > 0)
                 {
                     if (speed != currentSpeed)
                     {
@@ -137,7 +178,7 @@ public class Simulation : MonoBehaviour
                     }
                     vacuum.transform.position = Vector3.Lerp(startingPos, target, (elapsedTime / duration));
                     elapsedTime += Time.deltaTime;
-                    durations[pathAlgorithm] += Time.deltaTime * currentSpeed;
+                    durations[simNum] += Time.deltaTime * currentSpeed;
                     yield return new WaitForEndOfFrame();
                 }
                 else
@@ -161,7 +202,7 @@ public class Simulation : MonoBehaviour
     {
         StringBuilder sb = new StringBuilder();
         sb.Append("Coverage: ");
-        sb.Append(coverages[pathAlgorithm].ToString("0.00%"));
+        sb.Append(coverages[simNum].ToString("0.00%"));
         return sb.ToString();
     }
 
@@ -169,7 +210,7 @@ public class Simulation : MonoBehaviour
     {
         StringBuilder sb = new StringBuilder();
         sb.AppendLine("Duration (h:mm:ss):");
-        sb.Append(DurationFormat(durations[pathAlgorithm]));
+        sb.Append(DurationFormat(durations[simNum]));
         return sb.ToString();
     }
 
@@ -177,7 +218,7 @@ public class Simulation : MonoBehaviour
     {
         StringBuilder sb = new StringBuilder();
         sb.AppendLine("Battery Remaining:");
-        sb.Append(RemainingBattery(durations[pathAlgorithm]));
+        sb.Append(RemainingBattery(durations[simNum]));
         sb.Append(" Minutes");
         return sb.ToString();
     }
@@ -221,19 +262,19 @@ public class Simulation : MonoBehaviour
         return sb.ToString();
     }
 
-    private string SummaryString(int algorithm)
+    private string SummaryString(int num)
     {
         StringBuilder sb = new StringBuilder();
         sb.Append("<u><b>");
-        sb.Append(AlgorithmToString(algorithm));
+        sb.Append(algorithms[num]);
         sb.AppendLine("</u></b>");
         sb.Append("Duration: ");
-        sb.AppendLine(DurationFormat(durations[algorithm]));
+        sb.AppendLine(DurationFormat(durations[num]));
         sb.Append("Battery Remaining: ");
-        sb.Append(RemainingBattery(durations[algorithm]));
+        sb.Append(RemainingBattery(durations[num]));
         sb.AppendLine(" Minutes");
         sb.Append("Coverage: ");
-        sb.Append(coverages[algorithm].ToString("0.00%"));
+        sb.Append(coverages[num].ToString("0.00%"));
         return sb.ToString();
     }
 }
