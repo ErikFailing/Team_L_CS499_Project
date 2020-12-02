@@ -17,15 +17,17 @@ public class Simulation : MonoBehaviour
     private bool pathFinished;
     private bool autopilotFinished;
 
-    private string algorithmType;
+    public string algorithmType;
     private string floorType;
 
     private List<string> algorithms;
-    private List<float> durations;
+    public List<float> durations;
     private List<float> coverages;
 
     private Gradient trailGradient;
     
+    // For updating the clean percentage
+    private int nextUpdate;
 
     void Start()
     {
@@ -108,7 +110,7 @@ public class Simulation : MonoBehaviour
             vacuum.transform.GetChild(1).GetComponent<TrailRenderer>().colorGradient = trailGradient;
             vacuum.transform.GetChild(2).GetComponent<TrailRenderer>().colorGradient = trailGradient;
         }
-        if (path == null)
+        if (path == null || path.Count == 0)
         {
             FindPath();
         }
@@ -210,15 +212,24 @@ public class Simulation : MonoBehaviour
         StopSimulation();
         algorithmType = algorithm;
         FindPath();
+        Ref.I.Model.ResetPoints();
     }
 
     void Update()
     {
         // Coverage
-        if (vacuum != null)
+        if (vacuum != null && !paused)
         {
-            // Also need to retrieve the value here, not just calculate it
-            //Ref.I.Model.CalculateCleanliness(durations[0] * 3);
+            // If the next update is reached
+            if (Time.time >= nextUpdate)
+            {
+                // Change the next update (current second+1)
+                nextUpdate = Mathf.FloorToInt(Time.time) + 1;
+                // Call your fonction
+                // Also need to retrieve the value here, not just calculate it
+                //Ref.I.Model.CalculateCleanliness(Mathf.FloorToInt(durations[simNum] * 3));
+                //coverages[simNum] = Ref.I.Model.CalculateCoveragePercentage();
+            }
         }
         // GUI
         Ref.I.SimFloorTypeText.GetComponent<TextMeshProUGUI>().text = FloorTypeString();
@@ -347,7 +358,7 @@ public class Simulation : MonoBehaviour
         sb.Append(RemainingBattery(durations[num]));
         sb.AppendLine(" Minutes");
         sb.Append("Coverage: ");
-        sb.Append(coverages[num].ToString("0.00%"));
+        sb.Append(coverages[num].ToString("0.00"));
         return sb.ToString();
     }
 }
