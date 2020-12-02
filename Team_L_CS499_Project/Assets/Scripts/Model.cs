@@ -122,9 +122,64 @@ public class Model : MonoBehaviour
         Ref.I.Vacuum.transform.position = startPos;
         Ref.I.Vacuum.transform.rotation = new Quaternion();
     }
+
     public void CalculateSnakingPath()
     {
+        float totalDist = 0;
+        Vector3 startPos = Ref.I.Vacuum.transform.position;
+        
+        SnakingPath.Add(startPos);
 
+        while (totalDist < 27000)
+        {
+            Ray ray = new Ray(Ref.I.Vacuum.transform.position, Ref.I.Vacuum.transform.forward);
+            Physics.SphereCast(ray, 6.4f, out RaycastHit hitInfo);
+            Vector3 target = ray.GetPoint(hitInfo.distance - 0.1f);
+            // If vacuum can make the full distance without running out of battery, go the distance
+            if (totalDist + hitInfo.distance <= 27000)
+            {
+                SnakingPath.Add(target);
+                totalDist += hitInfo.distance;
+            }
+            else // Only go the remaning distance until the vacuum runs out of battery
+            {
+                float remainingDist = -totalDist + 27000;
+                SnakingPath.Add(target);
+                totalDist += remainingDist;
+            }
+
+            if (Physics.OverlapSphere(target, 6.4f).Length > 0)
+            {
+                Debug.LogWarning("WARNING: Snaking Path may be incorrect.");
+            }
+
+
+            // Decide which way to turn
+            // Cast two spheres, one to the left and another to the right
+            // Turn in the direction of the sphere that got the farthest
+            Ray rightRay = new Ray(target, Ref.I.Vacuum.transform.right);
+            Physics.SphereCast(rightRay, 6.4f, out RaycastHit rightHitInfo);
+            Ray leftRay = new Ray(target, -Ref.I.Vacuum.transform.right);
+            Physics.SphereCast(leftRay, 6.4f, out RaycastHit leftHitInfo);
+
+            if (rightHitInfo.distance > leftHitInfo.distance)
+            {
+                // Turn Right by a random amount
+                Ref.I.Vacuum.transform.Rotate(0, Random.Range(45, 135), 0);
+            }
+            else
+            {
+                // Turn Left by a random amount
+                Ref.I.Vacuum.transform.Rotate(0, -Random.Range(45, 135), 0);
+            }
+
+            // Move vacuum
+            Ref.I.Vacuum.transform.position = target;
+        }
+
+        // Reset vacuum
+        Ref.I.Vacuum.transform.position = startPos;
+        Ref.I.Vacuum.transform.rotation = new Quaternion();
     }
     public void CalculateSpiralPath()
     {
