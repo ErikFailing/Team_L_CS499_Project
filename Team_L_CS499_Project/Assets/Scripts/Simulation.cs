@@ -5,101 +5,177 @@ using System;
 using System.Text;
 using TMPro;
 
+public class Run
+{
+    public int num;
+    public string name;
+    public string algorithm;
+    public float duration;
+    public float coverage;
+    public List<Vector3> path;
+    public Vector3[] innerTrail;
+    public Vector3[] outerTrail;
+}
+
 public class Simulation : MonoBehaviour
 {
     private float speed;
     private int pathPosition;
-    private int simNum;
+    private int runNum;
     
     private GameObject vacuum;
     private List<Vector3> path;
     private bool paused;
     private bool pathFinished;
-    //private bool autopilotFinished;
+    private bool autopilotFinished;
 
     public string algorithmType;
     private string floorType;
 
-    private List<string> algorithms;
-    public List<float> durations;
-    private List<float> coverages;
+    public List<Run> runs;
 
     private Gradient trailGradient;
+
+    private int maxPoints;
     
     // For updating the clean percentage
     private int nextUpdate;
 
     void Start()
     {
+        // Initialize Simulation with default values
         speed = 1.0f;
-        pathPosition = 0;
-        simNum = 0;
-
-        paused = false;
-        pathFinished = false;
-        //autopilotFinished = false;
-
-        algorithmType = "Random";
         floorType = "Hardwood";
-
-        // By default indicies 0 to 3 in order are Random, Spiral, Snaking, and Wall follow
-        
-        algorithms = new List<string>(){"Random", "Spiral", "Snaking", "Wall follow"};
-        durations = new List<float>(){0.0f, 0.0f, 0.0f, 0.0f};
-        coverages = new List<float>(){0.0f, 0.0f, 0.0f, 0.0f};
+        maxPoints = 100000;
+        Reset();
     }
 
     public void Reset()
     {
+        // Re-Initialize simulation with default values
         StopCoroutine("FollowPath");
         
+        algorithmType = "Random";
+
         pathPosition = 0;
-        simNum = 0;
+        runNum = 0;
         path = null;
 
         paused = false;
-        
-        algorithms = new List<string>(){"Random", "Spiral", "Snaking", "Wall follow"};
-        durations = new List<float>(){0.0f, 0.0f, 0.0f, 0.0f};
-        coverages = new List<float>(){0.0f, 0.0f, 0.0f, 0.0f};
+        pathFinished = false;
+        autopilotFinished = false;
+
+        runs = new List<Run>();
+
+        UpdateRunDropdown();
+        Ref.I.RunDropdown.GetComponent<TMP_Dropdown>().SetValueWithoutNotify(0);
     }
 
-    private void AddNewSim(string algorithm)
+    private void UpdateRunDropdown()
     {
-        simNum = algorithms.Count;
-        algorithms.Add(algorithm);
-        durations.Add(0.0f);
-        coverages.Add(0.0f);
-        // Rerun algorithm and set the path to it
+        // The Vacuum Run Dropdown is updated here to reflect the instances of Run that were created
+        //runNum = runs.Count;
+        int nextRunNum = runs.Count;
+        // Debug.Log("Number of instances of Run: " + nextRunNum);
+        TMP_Dropdown dropdown = Ref.I.RunDropdown.GetComponent<TMP_Dropdown>();
+        List<string> options = new List<string>();
+        foreach (Run run in runs)
+        {
+            options.Add(run.name);
+        }
+        // Add new options
+        if (!autopilotFinished)
+        {
+            options.Add("(Auto) " + algorithmType + " #" + nextRunNum);
+        }
+        options.Add("(New) " + algorithmType + " #" + nextRunNum);
+        // Save previously dropdown
+        int prevValue = dropdown.value;
+        // Remove all options displayed
+        dropdown.ClearOptions();
+        // Display all of the new options
+        dropdown.AddOptions(options);
+        if (!autopilotFinished && pathFinished)
+        {
+            dropdown.SetValueWithoutNotify(options.Count - 2);
+        } else {
+            dropdown.SetValueWithoutNotify(prevValue);
+        }
     }
 
-    public void FindPath()
+    private void CreateRun()
     {
+        // When creating an instance of Run all of the properties need to be initialized
+        runNum = runs.Count;
+        Run run = new Run();
+        runs.Add(run);
+        run.num = runNum;
+        run.name = algorithmType + " #" + runNum;
+        run.algorithm = algorithmType;
+        run.duration = 0.0f;
+        run.coverage = 0.0f;
+        path = FindPath();
+        run.path = path;
+        run.innerTrail = new Vector3[maxPoints];
+        run.outerTrail = new Vector3[maxPoints];
+    }
+
+    public List<Vector3> FindPath()
+    {
+        // Iterate through all instances of Run to see if that instance had the same algorithm and increment the count
+        int nextPathNum = 0;
+        if (runs.Count > 0)
+        {
+            foreach (Run run in runs)
+            {
+                if (run.algorithm == algorithmType)
+                {
+                    nextPathNum++;
+                }
+            }
+        }
+
+        // Create the new path if needed and return it
         if (algorithmType == "Random")
         {
-            path = Ref.I.Model.data.RandomPaths[0].vectorThreeList;
-            simNum = 0;
+            if (nextPathNum > 0)
+            {
+                Ref.I.Model.CalculateRandomPath();
+            }
+            return Ref.I.Model.data.RandomPaths[nextPathNum].vectorThreeList;
         }
         else if (algorithmType == "Spiral")
         {
-            path = Ref.I.Model.data.SpiralPaths[0].vectorThreeList;
-            simNum = 1;
+            if (nextPathNum > 0)
+            {
+                Ref.I.Model.CalculateSpiralPath();
+            }
+            return Ref.I.Model.data.SpiralPaths[nextPathNum].vectorThreeList;
         }
         else if (algorithmType == "Snaking")
         {
-            path = Ref.I.Model.data.SnakingPaths[0].vectorThreeList;
-            simNum = 2;
+            if (nextPathNum > 0)
+            {
+                Ref.I.Model.CalculateSnakingPath();
+            }
+            return Ref.I.Model.data.SnakingPaths[nextPathNum].vectorThreeList;
         }
         else if (algorithmType == "Wall follow")
         {
-            path = Ref.I.Model.data.WallfollowPaths[0].vectorThreeList;
-            simNum = 3;
+            if (nextPathNum > 0)
+            {
+                Ref.I.Model.CalculateWallFollowPath();
+            }
+            return Ref.I.Model.data.WallfollowPaths[nextPathNum].vectorThreeList;
         }
+        return null;
     }
 
     public void StartSimulation()
     {
         paused = false;
+
+        // If the vacuum hasn't been assigned, then assign it and set the trail gradient based off of the floor type
         if (vacuum == null)
         {
             vacuum = Ref.I.Vacuum;
@@ -110,14 +186,34 @@ public class Simulation : MonoBehaviour
             vacuum.transform.GetChild(1).GetComponent<TrailRenderer>().colorGradient = trailGradient;
             vacuum.transform.GetChild(2).GetComponent<TrailRenderer>().colorGradient = trailGradient;
         }
+
+        // Find a new path if the path does not exist or the path is empty
         if (path == null || path.Count == 0)
         {
-            FindPath();
+            TMP_Dropdown dropdown = Ref.I.RunDropdown.GetComponent<TMP_Dropdown>();
+            string text = dropdown.options[dropdown.value].text;
+            if (text.Contains("Auto"))
+            {
+                CreateRun();
+            }
+            else if (text.Contains("New"))
+            {
+                autopilotFinished = true;
+                CreateRun();
+            }
+            else
+            {
+                runNum = dropdown.value;
+            }
         }
+        UpdateRunDropdown();
+
+        // Start the Coroutine to make the vacuum follow the path
         if (path != null)
         {
             if (pathPosition != path.Count)
             {
+                pathFinished = false;
                 StartCoroutine("FollowPath");
             }
         }
@@ -126,7 +222,8 @@ public class Simulation : MonoBehaviour
     public void PauseSimulation()
     {
         paused = true;
-        //autopilotFinished = true;
+
+        // Stop the Coroutine and inside of the function it handles stoping the movement execution loop
         if (path != null)
         {
             StopCoroutine("FollowPath");
@@ -136,42 +233,44 @@ public class Simulation : MonoBehaviour
     public void StopSimulation()
     {
         paused = false;
-        //autopilotFinished = true;
-        //if (path != null)
+        autopilotFinished = true;
+
+        // Stop the simulation run if the run had already started
         if (path != null && path.Count > 0)
         {
             StopCoroutine("FollowPath");
             pathPosition = 0;
             if (!pathFinished)
             {
-                durations[simNum] = 0.0f;
-                coverages[simNum] = 0.0f;
+                runs[runNum].duration = 0.0f;
+                runs[runNum].coverage = 0.0f;
             }
             vacuum.transform.position = path[pathPosition];
             vacuum.transform.GetChild(1).GetComponent<TrailRenderer>().Clear();
             vacuum.transform.GetChild(2).GetComponent<TrailRenderer>().Clear();
         }
+        UpdateRunDropdown();
     }
 
     private void Autopilot()
     {
         if (algorithmType == "Random")
         {
-            //simNum = 1;
-            //ChangeAlgorithm("Spiral");
-            simNum = 3;
-            ChangeAlgorithm("Wall follow");
-            //autopilotFinished = true;
+            // ChangeAlgorithm("Spiral");
+            //Ref.I.PathingDropdown.GetComponent<TMP_Dropdown>().SetValueWithoutNotify(1);
+            ChangeAlgorithm("Wall follow");                                                 // Remove these lines
+            Ref.I.PathingDropdown.GetComponent<TMP_Dropdown>().SetValueWithoutNotify(3);    // and uncomment everything
+            autopilotFinished = true;                                                       // after all algorithms work
         }
         // else if (algorithmType == "Spiral")
         // {
-        //     simNum = 2;
         //     ChangeAlgorithm("Snaking");
+        //     Ref.I.PathingDropdown.GetComponent<TMP_Dropdown>().SetValueWithoutNotify(2);
         // }
         // else if (algorithmType == "Snaking")
         // {
-        //     simNum = 3;
         //     ChangeAlgorithm("Wall follow");
+        //     Ref.I.PathingDropdown.GetComponent<TMP_Dropdown>().SetValueWithoutNotify(3);
         //     autopilotFinished = true;
         // }
     }
@@ -208,12 +307,37 @@ public class Simulation : MonoBehaviour
         this.speed = speed;
     }
 
+    public void ChangeRun(string text)
+    {
+        Debug.Log(text);
+        if (!text.Contains("Auto") && !text.Contains("New"))
+        {
+            runNum = Ref.I.RunDropdown.GetComponent<TMP_Dropdown>().value;
+            if (runs.Count > runNum)
+            {
+                if (runs[runNum].outerTrail[0] != null)
+                {
+                    // These lines cause serious performance issues
+                    // vacuum.transform.GetChild(1).GetComponent<TrailRenderer>().AddPositions(runs[runNum].outerTrail);
+                    // vacuum.transform.GetChild(2).GetComponent<TrailRenderer>().AddPositions(runs[runNum].innerTrail);
+                }
+            }
+        }
+        else
+        {
+            path = null;
+        }
+    }
+
     public void ChangeAlgorithm(string algorithm)
     {
         StopSimulation();
         algorithmType = algorithm;
-        FindPath();
+        CreateRun();
         Ref.I.Model.ResetPoints();
+        UpdateRunDropdown();
+        Ref.I.RunDropdown.GetComponent<TMP_Dropdown>().SetValueWithoutNotify(runNum);
+        StartSimulation();
     }
 
     void Update()
@@ -228,19 +352,52 @@ public class Simulation : MonoBehaviour
                 nextUpdate = Mathf.FloorToInt(Time.time) + 1;
                 // Call your fonction
                 // Also need to retrieve the value here, not just calculate it
-                //Ref.I.Model.CalculateCleanliness(Mathf.FloorToInt(durations[simNum] * 3));
-                //coverages[simNum] = Ref.I.Model.CalculateCoveragePercentage();
+                //Ref.I.Model.CalculateCleanliness(Mathf.FloorToInt(run[runNum].duration * 3));
+                //run[runNum].coverage = Ref.I.Model.CalculateCoveragePercentage();
             }
         }
         // GUI
-        Ref.I.SimFloorTypeText.GetComponent<TextMeshProUGUI>().text = FloorTypeString();
-        Ref.I.SimCoverageText.GetComponent<TextMeshProUGUI>().text = CoverageString();
-        Ref.I.SimDurationText.GetComponent<TextMeshProUGUI>().text = DurationString();
-        Ref.I.SimRemainingText.GetComponent<TextMeshProUGUI>().text = BatteryString();
-        Ref.I.SummaryRandomText.GetComponent<TextMeshProUGUI>().text = SummaryString(0);
-        Ref.I.SummarySpiralText.GetComponent<TextMeshProUGUI>().text = SummaryString(1);
-        Ref.I.SummarySnakingText.GetComponent<TextMeshProUGUI>().text = SummaryString(2);
-        Ref.I.SummaryWallFollowText.GetComponent<TextMeshProUGUI>().text = SummaryString(3);
+        if (runs.Count > 0) {
+            Ref.I.SimFloorTypeText.GetComponent<TextMeshProUGUI>().text = FloorTypeString();
+            Ref.I.SimCoverageText.GetComponent<TextMeshProUGUI>().text = CoverageString();
+            Ref.I.SimDurationText.GetComponent<TextMeshProUGUI>().text = DurationString();
+            Ref.I.SimRemainingText.GetComponent<TextMeshProUGUI>().text = BatteryString();
+            Ref.I.SummaryTopLeftText.GetComponent<TextMeshProUGUI>().text = SummaryString(0);
+
+            if (runs.Count > 1)
+            {
+                Ref.I.SummaryTopRightText.GetComponent<TextMeshProUGUI>().text = SummaryString(1);
+            }
+            else
+            {
+                Ref.I.SummaryTopRightText.GetComponent<TextMeshProUGUI>().text = "";
+            }
+
+            if (runs.Count > 2)
+            {
+                Ref.I.SummaryBottomLeftText.GetComponent<TextMeshProUGUI>().text = SummaryString(2);
+            }
+            else
+            {
+                Ref.I.SummaryBottomLeftText.GetComponent<TextMeshProUGUI>().text = "";
+            }
+
+            if (runs.Count > 3)
+            { 
+                Ref.I.SummaryBottomRightText.GetComponent<TextMeshProUGUI>().text = SummaryString(3);
+            }
+            else
+            {
+                Ref.I.SummaryBottomRightText.GetComponent<TextMeshProUGUI>().text = "";
+            }
+        }
+        else
+        {
+            Ref.I.SummaryTopLeftText.GetComponent<TextMeshProUGUI>().text = "Start a Run to see the summary.";
+            Ref.I.SummaryTopRightText.GetComponent<TextMeshProUGUI>().text = "";
+            Ref.I.SummaryBottomLeftText.GetComponent<TextMeshProUGUI>().text = "";
+            Ref.I.SummaryBottomRightText.GetComponent<TextMeshProUGUI>().text = "";
+        }
     }
 
     
@@ -258,7 +415,7 @@ public class Simulation : MonoBehaviour
             float currentSpeed = speed;
             while (elapsedTime < duration)
             {
-                if (!paused && RemainingBattery(durations[simNum]) > 0)
+                if (!paused && RemainingBattery(runs[runNum].duration) > 0)
                 {
                     if (speed != currentSpeed)
                     {
@@ -271,7 +428,7 @@ public class Simulation : MonoBehaviour
                     }
                     vacuum.transform.position = Vector3.Lerp(startingPos, target, (elapsedTime / duration));
                     elapsedTime += Time.deltaTime;
-                    durations[simNum] += Time.deltaTime * currentSpeed;
+                    runs[runNum].duration += Time.deltaTime * currentSpeed;
                     yield return new WaitForEndOfFrame();
                 }
                 else
@@ -280,12 +437,19 @@ public class Simulation : MonoBehaviour
                     if (!paused)
                     {
                         pathFinished = true;
+
+                        // Save the inner and outer trails from the vacuum
+                        vacuum.transform.GetChild(1).GetComponent<TrailRenderer>().GetPositions(runs[runNum].outerTrail);
+                        vacuum.transform.GetChild(2).GetComponent<TrailRenderer>().GetPositions(runs[runNum].innerTrail);
+
                         Ref.I.PathingDropdown.GetComponent<TMP_Dropdown>().interactable = true;
+                        Ref.I.RunDropdown.GetComponent<TMP_Dropdown>().interactable = true;
                         
-                        // if (!autopilotFinished)
-                        // {
-                        //     //Invoke("Autopilot", 5.0f);
-                        // }
+                        if (!autopilotFinished)
+                        {
+                            // Start next autopilot algorithm
+                            Autopilot();
+                        }
                     }
                 }
             }
@@ -305,7 +469,7 @@ public class Simulation : MonoBehaviour
     {
         StringBuilder sb = new StringBuilder();
         sb.Append("Coverage: ");
-        sb.Append(coverages[simNum].ToString("0.00%"));
+        sb.Append(runs[runNum].coverage.ToString("0.00%"));
         return sb.ToString();
     }
 
@@ -313,7 +477,7 @@ public class Simulation : MonoBehaviour
     {
         StringBuilder sb = new StringBuilder();
         sb.AppendLine("Duration (h:mm:ss):");
-        sb.Append(DurationFormat(durations[simNum]));
+        sb.Append(DurationFormat(runs[runNum].duration));
         return sb.ToString();
     }
 
@@ -321,7 +485,7 @@ public class Simulation : MonoBehaviour
     {
         StringBuilder sb = new StringBuilder();
         sb.AppendLine("Battery Remaining:");
-        sb.Append(RemainingBattery(durations[simNum]));
+        sb.Append(RemainingBattery(runs[runNum].duration));
         sb.Append(" Minutes");
         return sb.ToString();
     }
@@ -352,15 +516,17 @@ public class Simulation : MonoBehaviour
     {
         StringBuilder sb = new StringBuilder();
         sb.Append("<u><b>");
-        sb.Append(algorithms[num]);
+        sb.Append(runs[num].name);
         sb.AppendLine("</u></b>");
+        sb.Append("Algorithm: ");
+        sb.AppendLine(runs[num].algorithm);
         sb.Append("Duration: ");
-        sb.AppendLine(DurationFormat(durations[num]));
+        sb.AppendLine(DurationFormat(runs[num].duration));
         sb.Append("Battery Remaining: ");
-        sb.Append(RemainingBattery(durations[num]));
+        sb.Append(RemainingBattery(runs[num].duration));
         sb.AppendLine(" Minutes");
         sb.Append("Coverage: ");
-        sb.Append(coverages[num].ToString("0.00%"));
+        sb.Append(runs[num].coverage.ToString("0.00%"));
         return sb.ToString();
     }
 }

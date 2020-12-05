@@ -49,14 +49,16 @@ public class Ref : MonoBehaviour
     public GameObject SimDurationText;
     public GameObject SimRemainingText;
     public GameObject SummaryOverlay;
-    public GameObject SummaryRandomText;
-    public GameObject SummarySpiralText;
-    public GameObject SummarySnakingText;
-    public GameObject SummaryWallFollowText;
+    public GameObject SummaryTopLeftText;
+    public GameObject SummaryTopRightText;
+    public GameObject SummaryBottomLeftText;
+    public GameObject SummaryBottomRightText;
     public GameObject PlayButton;
     public GameObject PauseButton;
     public GameObject StopButton;
+    public GameObject RunDropdown;
     public GameObject PathingDropdown;
+    public GameObject FlooringDropdown;
 
     [Header("Prefabs")]
     public GameObject FloorPrefab;

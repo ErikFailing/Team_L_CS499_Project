@@ -104,6 +104,7 @@ public class GUI : MonoBehaviour
         }
         Ref.I.MainMenu.SetActive(false);
         Ref.I.HousePlannerMenu.SetActive(true);
+        Ref.I.FlooringDropdown.GetComponent<TMP_Dropdown>().SetValueWithoutNotify(0);
     }
 
     public void LoadSimulationButtonClick()
@@ -223,6 +224,7 @@ public class GUI : MonoBehaviour
         Ref.I.PauseButton.GetComponent<Button>().interactable = true;
         Ref.I.StopButton.GetComponent<Button>().interactable = true;
         Ref.I.PathingDropdown.GetComponent<TMP_Dropdown>().interactable = false;
+        Ref.I.RunDropdown.GetComponent<TMP_Dropdown>().interactable = false;
     }
 
     public void PauseButtonClick()
@@ -239,6 +241,7 @@ public class GUI : MonoBehaviour
         Ref.I.PauseButton.GetComponent<Button>().interactable = false;
         Ref.I.PlayButton.GetComponent<Button>().interactable = true;
         Ref.I.PathingDropdown.GetComponent<TMP_Dropdown>().interactable = true;
+        Ref.I.RunDropdown.GetComponent<TMP_Dropdown>().interactable = true;
     }
 
     public void SaveSimulation()
@@ -274,6 +277,11 @@ public class GUI : MonoBehaviour
     public void SummaryButtonClick()
     {
         OverlayToggle(Ref.I.SummaryOverlay);
+    }
+
+    public void VacuumRunDropdownValueChanged(TextMeshProUGUI tmpro)
+    {
+        Ref.I.Simulation.ChangeRun(tmpro.text);
     }
 
     public void PathAlgorithmDropdownValueChanged(TextMeshProUGUI tmpro)
