@@ -6,6 +6,6 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
-    path: Assets/Scenes/Liam.unity
+    path: Assets/Scenes/Eriks.unity
     guid: 9fd697473246b8f4ea62b062a921a980
   m_configObjects: {}

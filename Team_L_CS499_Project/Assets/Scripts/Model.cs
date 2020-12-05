@@ -71,6 +71,9 @@ public class Model : MonoBehaviour
         // Add starting position to path
         data.RandomPaths[pathIndex].vectorThreeList.Add(startPos);
 
+        // Start in a random direction
+        Ref.I.Vacuum.transform.Rotate(0, UnityEngine.Random.Range(0, 359), 0);
+
         while (totalDist < 27000)
         {
             Ray ray = new Ray(Ref.I.Vacuum.transform.position, Ref.I.Vacuum.transform.forward);
@@ -142,6 +145,9 @@ public class Model : MonoBehaviour
 
         // Add starting position to path
         data.WallfollowPaths[pathIndex].vectorThreeList.Add(startPos);
+
+        // Start in a random direction
+        Ref.I.Vacuum.transform.Rotate(0, UnityEngine.Random.Range(0, 359), 0);
 
         while (totalDist < 27000)
         {

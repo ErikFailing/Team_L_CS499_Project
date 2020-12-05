@@ -36,7 +36,7 @@ public static class SaveSystem
     /// </summary>
     /// <param name="saveName"></param>
     /// <returns></returns>
-    private static string SaveNameToFilePath(string saveName)
+    public static string SaveNameToFilePath(string saveName)
     {
         return Path.Combine(Application.persistentDataPath, "Save_" + saveName + ".json");
     }

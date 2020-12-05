@@ -313,10 +313,10 @@ public class GUI : MonoBehaviour
         Ref.I.LoadSaveButton.GetComponent<Button>().onClick.RemoveAllListeners();
     }
 
-    //public void OpenDatabaseFolder()
-    //{
-    //    EditorUtility.RevealInFinder(Application.persistentDataPath + "/player.log");
-    //}
+    public void OpenDatabaseFolder()
+    {
+        Application.OpenURL("file://" + Application.persistentDataPath);
+    }
 
     public void UpdateDeleteSaveListeners(string fileName)
     {
@@ -353,6 +353,8 @@ public class GUI : MonoBehaviour
             // Set text & Name
             saveFileButton.name = saveName;
             saveFileButton.transform.Find("Name").GetComponent<TextMeshProUGUI>().text = saveName;
+            var lastModified = File.GetLastWriteTime(SaveSystem.SaveNameToFilePath(saveName));
+            saveFileButton.transform.Find("Date").GetComponent<TextMeshProUGUI>().text = lastModified.ToString("MM/dd/yyyy HH:mm:ss");
 
             //Assign the onclick functions to the buttons
             saveFileButton.GetComponent<Button>().onClick.AddListener(delegate { UpdateLoadSaveListeners(saveName); });
