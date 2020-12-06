@@ -207,7 +207,7 @@ public class Model : MonoBehaviour
                     while (true)
                     {
                         // Turn by a random amount
-                        Ref.I.Vacuum.transform.Rotate(0, UnityEngine.Random.Range(45, 135), 0);
+                        Ref.I.Vacuum.transform.Rotate(0, UnityEngine.Random.Range(10, 135), 0);
                         // Check to see if forward movement is possible
                         Ray forwardRay = new Ray(target, Ref.I.Vacuum.transform.forward);
                         Physics.SphereCast(forwardRay, 6.4f, out RaycastHit forwardHitInfo);
@@ -277,8 +277,8 @@ public class Model : MonoBehaviour
                     Ref.I.Vacuum.transform.position = center;
 
                     // Create spiral
-                    float distanceFromCenter = 15f;
-                    float rotation = 30f;
+                    float distanceFromCenter = 1f;
+                    float rotation = 30f; 
                     while (totalDist < 27000)
                     {
                         // Save starting position
@@ -335,8 +335,8 @@ public class Model : MonoBehaviour
                             Ref.I.Vacuum.transform.position = targetPos;
                         }
 
-                        rotation += 30f;
-                        distanceFromCenter += 1f;
+                        rotation += 15f;
+                        distanceFromCenter += 0.55f;
                     }
                     
                     break;
