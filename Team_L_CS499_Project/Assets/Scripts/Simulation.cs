@@ -122,57 +122,35 @@ public class Simulation : MonoBehaviour
 
     public List<Vector3> FindPath()
     {
-        // Iterate through all instances of Run to see if that instance had the same algorithm and increment the count
-        int nextPathNum = 0;
-        if (runs.Count > 0)
-        {
-            foreach (Run run in runs)
-            {
-                if (run.algorithm == algorithmType)
-                {
-                    nextPathNum++;
-                }
-            }
-        }
+        
 
-        // Create the new path if needed and return it
+        // Create the new path and return it
         if (algorithmType == "Random")
         {
-            if (nextPathNum > 0)
-            {
-                Ref.I.Model.CalculateRandomPath();
-            }
-            return Ref.I.Model.data.RandomPaths[nextPathNum].vectorThreeList;
+            Ref.I.Model.CalculateRandomPath();
+            return Ref.I.Model.data.RandomPaths[Ref.I.Model.data.RandomPaths.Count - 1].vectorThreeList;
         }
         else if (algorithmType == "Spiral")
         {
-            if (nextPathNum > 0)
-            {
-                Ref.I.Model.CalculateSpiralPath();
-            }
-            return Ref.I.Model.data.SpiralPaths[nextPathNum].vectorThreeList;
+            Ref.I.Model.CalculateSpiralPath();
+            return Ref.I.Model.data.SpiralPaths[Ref.I.Model.data.SpiralPaths.Count - 1].vectorThreeList;
         }
         else if (algorithmType == "Snaking")
         {
-            if (nextPathNum > 0)
-            {
-                Ref.I.Model.CalculateSnakingPath();
-            }
-            return Ref.I.Model.data.SnakingPaths[nextPathNum].vectorThreeList;
+            Ref.I.Model.CalculateSnakingPath();
+            return Ref.I.Model.data.SnakingPaths[Ref.I.Model.data.SnakingPaths.Count - 1].vectorThreeList;
         }
         else if (algorithmType == "Wall follow")
         {
-            if (nextPathNum > 0)
-            {
-                Ref.I.Model.CalculateWallFollowPath();
-            }
-            return Ref.I.Model.data.WallfollowPaths[nextPathNum].vectorThreeList;
+            Ref.I.Model.CalculateWallFollowPath();
+            return Ref.I.Model.data.WallfollowPaths[Ref.I.Model.data.WallfollowPaths.Count - 1].vectorThreeList;
         }
         return null;
     }
 
     public void StartSimulation()
     {
+        
         paused = false;
 
         // If the vacuum hasn't been assigned, then assign it and set the trail gradient based off of the floor type
@@ -337,7 +315,6 @@ public class Simulation : MonoBehaviour
         Ref.I.Model.ResetPoints();
         UpdateRunDropdown();
         Ref.I.RunDropdown.GetComponent<TMP_Dropdown>().SetValueWithoutNotify(runNum);
-        StartSimulation();
     }
 
     void Update()

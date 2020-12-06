@@ -44,21 +44,6 @@ public class Model : MonoBehaviour
         data.FlooringType = "Hardwood";
     }
 
-    public void CalculatePaths()
-    {
-        // Vacuum moves 27000 inches before running out of energy. 150 minutes, 3 inches a second
-        // Path data structure....
-
-        //Random
-        CalculateRandomPath();
-        //Spiral
-        CalculateSpiralPath();
-        //Snaking
-        CalculateSnakingPath();
-        //Wall-follow
-        CalculateWallFollowPath();
-        
-    }
     public void CalculateRandomPath()
     {
         // Add new path to RandomPaths
@@ -83,7 +68,7 @@ public class Model : MonoBehaviour
             if (totalDist + hitInfo.distance <= 27000)
             {
                 data.RandomPaths[pathIndex].vectorThreeList.Add(target);
-                totalDist += hitInfo.distance;
+                totalDist += hitInfo.distance - 0.1f;
             }
             else // Only go the remaning distance until the vacuum runs out of battery
             {
@@ -127,11 +112,289 @@ public class Model : MonoBehaviour
     }
     public void CalculateSnakingPath()
     {
+        // Add new path to SnakingPaths
+        data.SnakingPaths.Add(new VectorThreeListWrapper(new List<Vector3>()));
+
+        int pathIndex = data.SnakingPaths.Count - 1;
+        float totalDist = 0;
+        Vector3 startPos = Ref.I.Vacuum.transform.position;
+
+        // Add starting position to path
+        data.SnakingPaths[pathIndex].vectorThreeList.Add(startPos);
+
+        // Start in a random direction
+        Ref.I.Vacuum.transform.Rotate(0, UnityEngine.Random.Range(0, 359), 0);
+
+        while (totalDist < 27000)
+        {
+
+            int turnMod = 1;
+            int directionMod = 0;
+
+            while (totalDist < 27000)
+            {
+
+                // Go straight until wall is hit
+                Ray ray = new Ray(Ref.I.Vacuum.transform.position, Ref.I.Vacuum.transform.forward);
+                Physics.SphereCast(ray, 6.4f, out RaycastHit hitInfo);
+                Vector3 target = ray.GetPoint(hitInfo.distance - 0.2f);
+
+                if (directionMod == 0)
+                {
+                    // Decide which way to turn and set direction mod
+                    // Cast two spheres, one to the left and another to the right
+                    // Turn in the direction of the sphere that got the farthest
+                    Ray rightRay = new Ray(target, Ref.I.Vacuum.transform.right);
+                    Physics.SphereCast(rightRay, 6.4f, out RaycastHit rightHitInfo);
+                    Ray leftRay = new Ray(target, -Ref.I.Vacuum.transform.right);
+                    Physics.SphereCast(leftRay, 6.4f, out RaycastHit leftHitInfo);
+                    if (rightHitInfo.distance > leftHitInfo.distance)
+                    {
+                        // Turn Right
+                        directionMod = 1;
+                    }
+                    else
+                    {
+                        // Turn Left
+                        directionMod = -1;
+                    }
+                }
+                // If vacuum can make the full distance without running out of battery, go the distance
+                if (totalDist + hitInfo.distance <= 27000)
+                {
+                    data.SnakingPaths[pathIndex].vectorThreeList.Add(target);
+                    totalDist += hitInfo.distance - 0.2f;
+                }
+                else // Only go the remaning distance until the vacuum runs out of battery
+                {
+                    float remainingDist = -totalDist + 27000;
+                    data.SnakingPaths[pathIndex].vectorThreeList.Add(ray.GetPoint(remainingDist));
+                    totalDist += remainingDist;
+                    break;
+                }
+
+                // Move vacuum
+                Ref.I.Vacuum.transform.position = target;
+
+                // If there is room to turn in turn direction, then turn
+                Ray turnRay = new Ray(target, directionMod * turnMod * Ref.I.Vacuum.transform.right);
+                Physics.SphereCast(turnRay, 6.4f, out RaycastHit turnHitInfo);
+                if (turnHitInfo.distance > 13)
+                {
+                    Vector3 turnTarget = turnRay.GetPoint(12.8f);
+                    if (totalDist + 12.8f <= 27000)
+                    {
+                        data.SnakingPaths[pathIndex].vectorThreeList.Add(turnTarget);
+                        totalDist += 12.8f;
+                    }
+                    else // Only go the remaning distance until the vacuum runs out of battery
+                    {
+                        float remainingDist = -totalDist + 27000;
+                        data.SnakingPaths[pathIndex].vectorThreeList.Add(turnRay.GetPoint(remainingDist));
+                        totalDist += remainingDist;
+                        break;
+                    }
+
+
+                    // Move vacuum in that direction
+                    Ref.I.Vacuum.transform.position = turnRay.GetPoint(12.8f);
+
+                    // Rotate vacuum 180
+                    Ref.I.Vacuum.transform.Rotate(0, 180, 0);
+                }
+                else // Else turn randomly until can go forward again and change directionMod
+                {
+                    while (true)
+                    {
+                        // Turn by a random amount
+                        Ref.I.Vacuum.transform.Rotate(0, UnityEngine.Random.Range(45, 135), 0);
+                        // Check to see if forward movement is possible
+                        Ray forwardRay = new Ray(target, Ref.I.Vacuum.transform.forward);
+                        Physics.SphereCast(forwardRay, 6.4f, out RaycastHit forwardHitInfo);
+                        if (forwardHitInfo.distance > 3) break;
+                    }
+                    break;
+                }
+
+                turnMod = turnMod * -1;
+            }
+
+
+
+        }
+
+        // Reset vacuum
+        Ref.I.Vacuum.transform.position = startPos;
+        Ref.I.Vacuum.transform.rotation = new Quaternion();
 
     }
     public void CalculateSpiralPath()
     {
-        Debug.Log("Creating spiral path");
+        // Add new path to SpiralPaths
+        data.SpiralPaths.Add(new VectorThreeListWrapper(new List<Vector3>()));
+
+        int pathIndex = data.SpiralPaths.Count - 1;
+        float totalDist = 0;
+        Vector3 startPosition = Ref.I.Vacuum.transform.position;
+
+        // Add starting position to path
+        data.SpiralPaths[pathIndex].vectorThreeList.Add(startPosition);
+
+        // Start in a random direction
+        Ref.I.Vacuum.transform.Rotate(0, UnityEngine.Random.Range(0, 359), 0);
+
+        while (totalDist < 27000)
+        {
+            // Basic move in straight line forward
+            Ray ray = new Ray(Ref.I.Vacuum.transform.position, Ref.I.Vacuum.transform.forward);
+            Physics.SphereCast(ray, 6.4f, out RaycastHit hitInfo);
+            Vector3 target = ray.GetPoint(hitInfo.distance - 0.1f);
+            // Check to see if there is enough space to make a spiral along the path forward
+            bool spiralCreated = false;
+            float currentDistance = 5f;
+            while (currentDistance < hitInfo.distance - 0.1f && totalDist > 0)
+            {
+                // If enough room to create spiral exists, create spiral
+                if (Physics.OverlapSphere(ray.GetPoint(currentDistance), 25).Length == 0)
+                {
+                    spiralCreated = true;
+                    // Navigate to spiral start point
+                    Vector3 center = ray.GetPoint(currentDistance);
+                    // If vacuum can make the full distance without running out of battery, go the distance
+                    if (totalDist + currentDistance <= 27000)
+                    {
+                        data.SpiralPaths[pathIndex].vectorThreeList.Add(center);
+                        totalDist += currentDistance;
+                    }
+                    else // Only go the remaning distance until the vacuum runs out of battery
+                    {
+                        float remainingDist = -totalDist + 27000;
+                        data.SpiralPaths[pathIndex].vectorThreeList.Add(ray.GetPoint(remainingDist));
+                        totalDist += remainingDist;
+                        break;
+                    }
+                    // Move vacuum
+                    Ref.I.Vacuum.transform.position = center;
+
+                    // Create spiral
+                    float distanceFromCenter = 15f;
+                    float rotation = 30f;
+                    while (totalDist < 27000)
+                    {
+                        // Save starting position
+                        Vector3 startPos = Ref.I.Vacuum.transform.position;
+                        // Increase distance from center
+                        Ref.I.Vacuum.transform.position = new Vector3(center.x, center.y, center.z + distanceFromCenter);
+                        // Rotate
+                        Ref.I.Vacuum.transform.RotateAround(center, Ref.I.Vacuum.transform.up, rotation);
+                        // Save target position
+                        Vector3 targetPos = Ref.I.Vacuum.transform.position;
+                        //Reset position
+                        Ref.I.Vacuum.transform.position = startPos;
+                        //Look at target
+                        Ref.I.Vacuum.transform.LookAt(targetPos);
+                        // Calculate distance to target
+                        float distanceToTarget = Vector3.Distance(startPos, targetPos);
+                        // Cast a sphere towards target
+                        Ray spiralRay = new Ray(startPos, Ref.I.Vacuum.transform.forward);
+                        Physics.SphereCast(spiralRay, 6.4f, out RaycastHit spiralHitInfo);
+                        // If vacuum can't completely move to target
+                        if (spiralHitInfo.distance < distanceToTarget) 
+                        {
+                            // If vacuum can make the full distance without running out of battery, go the distance
+                            if (totalDist + spiralHitInfo.distance <= 27000)
+                            {
+                                data.SpiralPaths[pathIndex].vectorThreeList.Add(spiralRay.GetPoint(spiralHitInfo.distance));
+                                totalDist += spiralHitInfo.distance;
+                            }
+                            else // Only go the remaning distance until the vacuum runs out of battery
+                            {
+                                float remainingDist = -totalDist + 27000;
+                                data.SpiralPaths[pathIndex].vectorThreeList.Add(Vector3.MoveTowards(startPos, targetPos, remainingDist));
+                                totalDist += remainingDist;
+                                break;
+                            }
+                            Ref.I.Vacuum.transform.position = spiralRay.GetPoint(spiralHitInfo.distance);
+                            break;
+                        }
+                        else // If vacuum can completely move to target
+                        {
+                            // If vacuum can make the full distance without running out of battery, go the distance
+                            if (totalDist + distanceToTarget <= 27000)
+                            {
+                                data.SpiralPaths[pathIndex].vectorThreeList.Add(targetPos);
+                                totalDist += distanceToTarget;
+                            }
+                            else // Only go the remaning distance until the vacuum runs out of battery
+                            {
+                                float remainingDist = -totalDist + 27000;
+                                data.SpiralPaths[pathIndex].vectorThreeList.Add(Vector3.MoveTowards(startPos, targetPos, remainingDist));
+                                totalDist += remainingDist;
+                                break;
+                            }
+                            Ref.I.Vacuum.transform.position = targetPos;
+                        }
+
+                        rotation += 30f;
+                        distanceFromCenter += 1f;
+                    }
+                    
+                    break;
+                }
+
+                currentDistance += UnityEngine.Random.Range(25, 300);
+            }
+
+            if (!spiralCreated)
+            {
+                // If vacuum can make the full distance without running out of battery, go the distance
+                if (totalDist + hitInfo.distance <= 27000)
+                {
+                    data.SpiralPaths[pathIndex].vectorThreeList.Add(target);
+                    totalDist += hitInfo.distance - 0.1f;
+                }
+                else // Only go the remaning distance until the vacuum runs out of battery
+                {
+                    float remainingDist = -totalDist + 27000;
+                    data.SpiralPaths[pathIndex].vectorThreeList.Add(ray.GetPoint(remainingDist));
+                    totalDist += remainingDist;
+                    break;
+                }
+
+                if (Physics.OverlapSphere(target, 6.4f).Length > 0)
+                {
+                    Debug.LogWarning("WARNING: Random Path may be incorrect.");
+                }
+
+                // Decide which way to turn
+                // Cast two spheres, one to the left and another to the right
+                // Turn in the direction of the sphere that got the farthest
+                Ray rightRay = new Ray(target, Ref.I.Vacuum.transform.right);
+                Physics.SphereCast(rightRay, 6.4f, out RaycastHit rightHitInfo);
+                Ray leftRay = new Ray(target, -Ref.I.Vacuum.transform.right);
+                Physics.SphereCast(leftRay, 6.4f, out RaycastHit leftHitInfo);
+
+                if (rightHitInfo.distance > leftHitInfo.distance)
+                {
+                    // Turn Right by a random amount
+                    Ref.I.Vacuum.transform.Rotate(0, UnityEngine.Random.Range(45, 135), 0);
+                }
+                else
+                {
+                    // Turn Left by a random amount
+                    Ref.I.Vacuum.transform.Rotate(0, -UnityEngine.Random.Range(45, 135), 0);
+                }
+
+                // Move vacuum
+                Ref.I.Vacuum.transform.position = target;
+            }
+            
+        }
+
+        // Reset vacuum
+        Ref.I.Vacuum.transform.position = startPosition;
+        Ref.I.Vacuum.transform.rotation = new Quaternion();
+
     }
     public void CalculateWallFollowPath()
     {
@@ -180,7 +443,7 @@ public class Model : MonoBehaviour
             if (totalDist + distance <= 27000)
             {
                 data.WallfollowPaths[pathIndex].vectorThreeList.Add(target);
-                totalDist += distance;
+                totalDist += hitInfo.distance - 0.1f;
             }
             else // Only go the remaining distance until the vacuum runs out of battery
             {
