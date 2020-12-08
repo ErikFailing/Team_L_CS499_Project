@@ -97,6 +97,7 @@ public class Simulation : MonoBehaviour
         dropdown.AddOptions(options);
         if (!autopilotFinished && pathFinished)
         {
+            // I don't think this is not working
             dropdown.SetValueWithoutNotify(options.Count - 2);
         } else {
             dropdown.SetValueWithoutNotify(prevValue);
@@ -122,8 +123,6 @@ public class Simulation : MonoBehaviour
 
     public List<Vector3> FindPath()
     {
-        
-
         // Create the new path and return it
         if (algorithmType == "Random")
         {
@@ -150,7 +149,6 @@ public class Simulation : MonoBehaviour
 
     public void StartSimulation()
     {
-        
         paused = false;
 
         // If the vacuum hasn't been assigned, then assign it and set the trail gradient based off of the floor type
@@ -234,23 +232,28 @@ public class Simulation : MonoBehaviour
     {
         if (algorithmType == "Random")
         {
-            // ChangeAlgorithm("Spiral");
-            //Ref.I.PathingDropdown.GetComponent<TMP_Dropdown>().SetValueWithoutNotify(1);
-            ChangeAlgorithm("Wall follow");                                                 // Remove these lines
-            Ref.I.PathingDropdown.GetComponent<TMP_Dropdown>().SetValueWithoutNotify(3);    // and uncomment everything
-            autopilotFinished = true;                                                       // after all algorithms work
+            ChangeAlgorithm("Spiral");
+            autopilotFinished = false;
+            Ref.I.PathingDropdown.GetComponent<TMP_Dropdown>().SetValueWithoutNotify(1);
+            Ref.I.RunDropdown.GetComponent<TMP_Dropdown>().SetValueWithoutNotify(1);
         }
-        // else if (algorithmType == "Spiral")
-        // {
-        //     ChangeAlgorithm("Snaking");
-        //     Ref.I.PathingDropdown.GetComponent<TMP_Dropdown>().SetValueWithoutNotify(2);
-        // }
-        // else if (algorithmType == "Snaking")
-        // {
-        //     ChangeAlgorithm("Wall follow");
-        //     Ref.I.PathingDropdown.GetComponent<TMP_Dropdown>().SetValueWithoutNotify(3);
-        //     autopilotFinished = true;
-        // }
+        else if (algorithmType == "Spiral")
+        {
+            ChangeAlgorithm("Snaking");
+            autopilotFinished = false;
+            Ref.I.PathingDropdown.GetComponent<TMP_Dropdown>().SetValueWithoutNotify(2);
+            Ref.I.RunDropdown.GetComponent<TMP_Dropdown>().SetValueWithoutNotify(2);
+        }
+        else if (algorithmType == "Snaking")
+        {
+            ChangeAlgorithm("Wall follow");
+            autopilotFinished = true;
+            Ref.I.PathingDropdown.GetComponent<TMP_Dropdown>().SetValueWithoutNotify(3);
+            Ref.I.RunDropdown.GetComponent<TMP_Dropdown>().SetValueWithoutNotify(3);
+        }
+        CreateRun();
+        Ref.I.GUI.PlayButtonClick();
+        //StartSimulation();
     }
 
     public void ChangeFloorType(string type)
@@ -287,19 +290,9 @@ public class Simulation : MonoBehaviour
 
     public void ChangeRun(string text)
     {
-        Debug.Log(text);
         if (!text.Contains("Auto") && !text.Contains("New"))
         {
             runNum = Ref.I.RunDropdown.GetComponent<TMP_Dropdown>().value;
-            if (runs.Count > runNum)
-            {
-                if (runs[runNum].outerTrail[0] != null)
-                {
-                    // These lines cause serious performance issues
-                    // vacuum.transform.GetChild(1).GetComponent<TrailRenderer>().AddPositions(runs[runNum].outerTrail);
-                    // vacuum.transform.GetChild(2).GetComponent<TrailRenderer>().AddPositions(runs[runNum].innerTrail);
-                }
-            }
         }
         else
         {
@@ -311,7 +304,6 @@ public class Simulation : MonoBehaviour
     {
         StopSimulation();
         algorithmType = algorithm;
-        CreateRun();
         Ref.I.Model.ResetPoints();
         UpdateRunDropdown();
         Ref.I.RunDropdown.GetComponent<TMP_Dropdown>().SetValueWithoutNotify(runNum);
@@ -339,11 +331,11 @@ public class Simulation : MonoBehaviour
             Ref.I.SimCoverageText.GetComponent<TextMeshProUGUI>().text = CoverageString();
             Ref.I.SimDurationText.GetComponent<TextMeshProUGUI>().text = DurationString();
             Ref.I.SimRemainingText.GetComponent<TextMeshProUGUI>().text = BatteryString();
-            Ref.I.SummaryTopLeftText.GetComponent<TextMeshProUGUI>().text = SummaryString(0);
+            Ref.I.SummaryTopLeftText.GetComponent<TextMeshProUGUI>().text = SummaryString(runs.Count - 1);
 
             if (runs.Count > 1)
             {
-                Ref.I.SummaryTopRightText.GetComponent<TextMeshProUGUI>().text = SummaryString(1);
+                Ref.I.SummaryTopRightText.GetComponent<TextMeshProUGUI>().text = SummaryString(runs.Count - 2);
             }
             else
             {
@@ -352,7 +344,7 @@ public class Simulation : MonoBehaviour
 
             if (runs.Count > 2)
             {
-                Ref.I.SummaryBottomLeftText.GetComponent<TextMeshProUGUI>().text = SummaryString(2);
+                Ref.I.SummaryBottomLeftText.GetComponent<TextMeshProUGUI>().text = SummaryString(runs.Count - 3);
             }
             else
             {
@@ -361,7 +353,7 @@ public class Simulation : MonoBehaviour
 
             if (runs.Count > 3)
             { 
-                Ref.I.SummaryBottomRightText.GetComponent<TextMeshProUGUI>().text = SummaryString(3);
+                Ref.I.SummaryBottomRightText.GetComponent<TextMeshProUGUI>().text = SummaryString(runs.Count - 4);
             }
             else
             {
@@ -381,8 +373,9 @@ public class Simulation : MonoBehaviour
 
     public IEnumerator FollowPath()
     {
+        bool finished = false;
         // This function will move the vacuum GameObject through the path at the speed of 3 in/s (3 units/s)
-        while (pathPosition < path.Count)
+        while (pathPosition < path.Count && !finished)
         {
             Vector3 target = path[pathPosition];
             float elapsedTime = 0;
@@ -410,7 +403,8 @@ public class Simulation : MonoBehaviour
                 }
                 else
                 {
-                    elapsedTime = duration;
+                    // Exit function loop variable
+                    finished = true;
                     if (!paused)
                     {
                         pathFinished = true;
@@ -424,10 +418,12 @@ public class Simulation : MonoBehaviour
                         
                         if (!autopilotFinished)
                         {
-                            // Start next autopilot algorithm
+                            // Start next autopilot algorithm run
                             Autopilot();
                         }
                     }
+                    // Exit movement loop
+                    break;
                 }
             }
             pathPosition++;

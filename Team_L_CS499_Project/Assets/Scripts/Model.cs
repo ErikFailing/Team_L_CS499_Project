@@ -363,7 +363,7 @@ public class Model : MonoBehaviour
 
                 if (Physics.OverlapSphere(target, 6.4f).Length > 0)
                 {
-                    Debug.LogWarning("WARNING: Random Path may be incorrect.");
+                    Debug.LogWarning("WARNING: Spiral Path may be incorrect.");
                 }
 
                 // Decide which way to turn
@@ -455,7 +455,7 @@ public class Model : MonoBehaviour
 
             if (Physics.OverlapSphere(target, 6.4f).Length > 0)
             {
-                Debug.LogWarning("WARNING: Random Path may be incorrect.");
+                Debug.LogWarning("WARNING: Spiral Path may be incorrect.");
             }
 
 
