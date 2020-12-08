@@ -8,6 +8,7 @@ public class Model : MonoBehaviour
     public Data data;
 
     public Dictionary<Vector2, float> cleanablePoints;
+    public int currentDistance;
 
     [Serializable]
     public class Data
@@ -31,7 +32,6 @@ public class Model : MonoBehaviour
 
         // Updated at save only
         public List<Vector2> cleanablePointsVectors;
-        public List<float> cleanablePointsValues;
     }
 
 
@@ -361,10 +361,6 @@ public class Model : MonoBehaviour
                     break;
                 }
 
-                if (Physics.OverlapSphere(target, 6.4f).Length > 0)
-                {
-                    Debug.LogWarning("WARNING: Spiral Path may be incorrect.");
-                }
 
                 // Decide which way to turn
                 // Cast two spheres, one to the left and another to the right
@@ -485,14 +481,11 @@ public class Model : MonoBehaviour
 
     public float CalculateCoveragePercentage()
     {
-        float maxCleanliness = cleanablePoints.Keys.Count * 150;
+        float maxCleanliness = cleanablePoints.Keys.Count * 350;
         float currentCleanliness = 0;
         foreach (Vector2 key in cleanablePoints.Keys)
         {
-            if (cleanablePoints.ContainsKey(key))
-            {
-                currentCleanliness += cleanablePoints[key];
-            }
+            currentCleanliness += cleanablePoints[key];
         }
 
         return (currentCleanliness / maxCleanliness);
@@ -504,34 +497,28 @@ public class Model : MonoBehaviour
     // distance is how far (in inches) the robot is along the path
     public void CalculateCleanliness(int distance)
     {
-        if (distance < 1) return;
-        
-        // Reset points
-        ResetPoints();
+        if (distance < 1 && distance == 27000) return;
         
         // Need to make this switch based on current path
-        List<Vector3> path = new List<Vector3>();
-        if (Ref.I.Simulation.algorithmType == "Random")
-        {
-            path = data.RandomPaths[0].vectorThreeList;
-        }
-        else if (Ref.I.Simulation.algorithmType == "Spiral")
-        {
-            path = data.SpiralPaths[0].vectorThreeList;
-        }
-        else if (Ref.I.Simulation.algorithmType == "Snaking")
-        {
-            path = data.SnakingPaths[0].vectorThreeList;
-        }
-        else if (Ref.I.Simulation.algorithmType == "Wall follow")
-        {
-            path = data.WallfollowPaths[0].vectorThreeList;
-        }
+        List<Vector3> path = Ref.I.Simulation.runs[Ref.I.Simulation.runNum].path;
+        //if (Ref.I.Simulation.algorithmType == "Random")
+        //{
+        //    path = Ref.I.Simulation.runs[Ref.I.Simulation.runNum].path;
+        //}
+        //else if (Ref.I.Simulation.algorithmType == "Spiral")
+        //{
+        //    path = data.SpiralPaths[0].vectorThreeList;
+        //}
+        //else if (Ref.I.Simulation.algorithmType == "Snaking")
+        //{
+        //    path = data.SnakingPaths[0].vectorThreeList;
+        //}
+        //else if (Ref.I.Simulation.algorithmType == "Wall follow")
+        //{
+        //    path = data.WallfollowPaths[0].vectorThreeList;
+        //}
 
-        float distanceCovered = 0;
-        //float distanceToMove = distanceDesired - currentDistance;
-        Vector3 currentPos = path[0];
-        int targetIndex = 1;
+
         float cleaningEfficieny = 0;
 
         // Set cleaning efficiency based on floor type
@@ -552,15 +539,42 @@ public class Model : MonoBehaviour
             cleaningEfficieny = 1;
         }
 
+        //float distanceToMove = distanceDesired - currentDistance;
+        Vector3 currentPos = path[0];
+        int targetIndex = 1;
+
+        // Advance along path until currentDistance is reached
+        float remainingDistance = currentDistance;
+        while (remainingDistance > 0 && targetIndex < path.Count)
+        {
+            float distanceToNextPoint = Vector3.Distance(currentPos, path[targetIndex]);
+            if (distanceToNextPoint < remainingDistance)
+            {
+                // Advance to next point
+                currentPos = Vector3.MoveTowards(currentPos, path[targetIndex], distanceToNextPoint);
+                remainingDistance -= distanceToNextPoint;
+                targetIndex += 1;
+            }
+            else
+            {
+                // Advance along path as normal
+                currentPos = Vector3.MoveTowards(currentPos, path[targetIndex], remainingDistance);
+                remainingDistance -= remainingDistance;
+            }
+        }
+
+
+
+
         // Clean
-        while (distanceCovered < distance)
+        while (currentDistance <= distance)
         {
             // Clean current point
             // Vacuum
             List<Vector2> vacuumPoints = GetPointsWithinCircle(new Vector2(currentPos.x, currentPos.z), 5.8f);
             foreach (Vector2 p in vacuumPoints)
             {
-                cleanablePoints[p] = Mathf.Clamp(cleanablePoints[p] + cleaningEfficieny, 0, 150);
+                cleanablePoints[p] = Mathf.Clamp(cleanablePoints[p] + cleaningEfficieny, 0, 350);
             }
             // Whiskers
             List<Vector2> whiskerPoints = GetPointsWithinCircle(new Vector2(currentPos.x, currentPos.z), 13.5f);
@@ -571,13 +585,12 @@ public class Model : MonoBehaviour
             }
             foreach (Vector2 p in whiskerPoints)
             {
-                cleanablePoints[p] = Mathf.Clamp(cleanablePoints[p] + (cleaningEfficieny * 0.7f), 0, 150);
+                cleanablePoints[p] = Mathf.Clamp(cleanablePoints[p] + (cleaningEfficieny * 0.7f), 0, 350);
             }
 
             // Advance current position one inch along the path
-            float remainingDistance = 1;
-            int timesLooped = 0;
-            while (remainingDistance > 0)
+            remainingDistance = 1;
+            while (remainingDistance > 0 && targetIndex < path.Count)
             {
                 float distanceToNextPoint = Vector3.Distance(currentPos, path[targetIndex]);
                 if (distanceToNextPoint < remainingDistance)
@@ -593,18 +606,13 @@ public class Model : MonoBehaviour
                     currentPos = Vector3.MoveTowards(currentPos, path[targetIndex], remainingDistance);
                     remainingDistance -= remainingDistance;
                 }
-                if (timesLooped > 50)
-                {
-                    Debug.LogWarning("INFINITE LOOP, EXITING");
-                    break;
-                }
-                timesLooped++;
             }
 
 
-            distanceCovered += 1;
+            currentDistance += 1;
         }
-
+        
+        currentDistance = distance;
     }
 
     // Used to points within the radius of the whiskers and vacuum
@@ -715,9 +723,9 @@ public class Model : MonoBehaviour
         foreach (Vector4 room in data.Rooms)
         {
             // Add points that are contained in rooms
-            for (int x = (int)room.x; x <= room.z; x +=2)
+            for (int x = (int)room.x; x <= room.z; x +=4)
             {
-                for (int y = (int)room.y; y >= room.w; y -=2)
+                for (int y = (int)room.y; y >= room.w; y -=4)
                 {
                     Vector2 point = new Vector2(x, y);
                     // Only add if it isn't already added
@@ -1260,15 +1268,15 @@ public class Model : MonoBehaviour
             RemoveFloor(room);
         }
         data.RandomPaths.Clear();
-        cleanablePoints.Clear();
+        cleanablePoints = new Dictionary<Vector2, float>();
         data.SpiralPaths.Clear();
         data.WallfollowPaths.Clear();
         data.SnakingPaths.Clear();
-        data.cleanablePointsValues.Clear();
-        data.cleanablePointsVectors.Clear();
+        data.cleanablePointsVectors =  new List<Vector2>();
         ChangeFloorType("Hardwood");
         data.name = "";
         data.pathingVersion = "v1.2.4";
+        currentDistance = 0;
     }
 
     public Vector4 FindObjectRect(Vector2 p)

@@ -127,9 +127,10 @@ public static class SaveSystem
         Ref.I.Model.data.WallfollowPaths = data.WallfollowPaths;
         Ref.I.Model.data.SnakingPaths = data.SnakingPaths;
 
-        for (int i = 0; i < data.cleanablePointsValues.Count; i++)
+
+        for (int i = 0; i < data.cleanablePointsVectors.Count; i++)
         {
-            Ref.I.Model.cleanablePoints.Add(data.cleanablePointsVectors[i], data.cleanablePointsValues[i]);
+            Ref.I.Model.cleanablePoints.Add(data.cleanablePointsVectors[i], 0);
         }
 
     }
@@ -149,10 +150,10 @@ public static class SaveSystem
         string path = SaveNameToFilePath(saveName);
 
         //Pre-save work
-        foreach (var key in Ref.I.Model.cleanablePoints.Keys)
+
+        foreach (Vector2 key in Ref.I.Model.cleanablePoints.Keys)
         {
             Ref.I.Model.data.cleanablePointsVectors.Add(key);
-            Ref.I.Model.data.cleanablePointsValues.Add(Ref.I.Model.cleanablePoints[key]);
         }
 
         // Save file

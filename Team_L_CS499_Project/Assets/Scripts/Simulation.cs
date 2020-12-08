@@ -21,7 +21,7 @@ public class Simulation : MonoBehaviour
 {
     private float speed;
     private int pathPosition;
-    private int runNum;
+    public int runNum;
     
     private GameObject vacuum;
     private List<Vector3> path;
@@ -37,6 +37,8 @@ public class Simulation : MonoBehaviour
     private Gradient trailGradient;
 
     private int maxPoints;
+
+    private bool stopped;
     
     // For updating the clean percentage
     private int nextUpdate;
@@ -48,6 +50,7 @@ public class Simulation : MonoBehaviour
         floorType = "Hardwood";
         maxPoints = 100000;
         Reset();
+        stopped = true;
     }
 
     public void Reset()
@@ -66,9 +69,14 @@ public class Simulation : MonoBehaviour
         autopilotFinished = false;
 
         runs = new List<Run>();
+        stopped = true;
 
         UpdateRunDropdown();
         Ref.I.RunDropdown.GetComponent<TMP_Dropdown>().SetValueWithoutNotify(0);
+        
+        // Reset distance tracker for the coverage calculations
+        Ref.I.Model.currentDistance = 0;
+        Ref.I.Model.ResetPoints();
     }
 
     private void UpdateRunDropdown()
@@ -150,6 +158,7 @@ public class Simulation : MonoBehaviour
     public void StartSimulation()
     {
         paused = false;
+        stopped = false;
 
         // If the vacuum hasn't been assigned, then assign it and set the trail gradient based off of the floor type
         if (vacuum == null)
@@ -210,6 +219,7 @@ public class Simulation : MonoBehaviour
     {
         paused = false;
         autopilotFinished = true;
+        stopped = true;
 
         // Stop the simulation run if the run had already started
         if (path != null && path.Count > 0)
@@ -226,6 +236,9 @@ public class Simulation : MonoBehaviour
             vacuum.transform.GetChild(2).GetComponent<TrailRenderer>().Clear();
         }
         UpdateRunDropdown();
+
+        Ref.I.Model.currentDistance = 0;
+        Ref.I.Model.ResetPoints();
     }
 
     private void Autopilot()
@@ -312,7 +325,7 @@ public class Simulation : MonoBehaviour
     void Update()
     {
         // Coverage
-        if (vacuum != null && !paused)
+        if (vacuum != null && !paused && !stopped)
         {
             // If the next update is reached
             if (Time.time >= nextUpdate)
@@ -321,10 +334,12 @@ public class Simulation : MonoBehaviour
                 nextUpdate = Mathf.FloorToInt(Time.time) + 1;
                 // Call your fonction
                 // Also need to retrieve the value here, not just calculate it
-                //Ref.I.Model.CalculateCleanliness(Mathf.FloorToInt(run[runNum].duration * 3));
-                //run[runNum].coverage = Ref.I.Model.CalculateCoveragePercentage();
+                
+                runs[runNum].coverage = Ref.I.Model.CalculateCoveragePercentage();
             }
+            Ref.I.Model.CalculateCleanliness(Mathf.FloorToInt(runs[runNum].duration * 3));
         }
+        //else if ()
         // GUI
         if (runs.Count > 0) {
             Ref.I.SimFloorTypeText.GetComponent<TextMeshProUGUI>().text = FloorTypeString();
