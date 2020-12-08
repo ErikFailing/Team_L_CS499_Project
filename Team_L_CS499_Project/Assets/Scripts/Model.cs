@@ -299,7 +299,7 @@ public class Model : MonoBehaviour
                         Ray spiralRay = new Ray(startPos, Ref.I.Vacuum.transform.forward);
                         Physics.SphereCast(spiralRay, 6.4f, out RaycastHit spiralHitInfo);
                         // If vacuum can't completely move to target
-                        if (spiralHitInfo.distance < distanceToTarget) 
+                        if (spiralHitInfo.distance < distanceToTarget - 0.2) 
                         {
                             // If vacuum can make the full distance without running out of battery, go the distance
                             if (totalDist + spiralHitInfo.distance <= 27000)
