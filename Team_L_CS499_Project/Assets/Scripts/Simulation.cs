@@ -612,7 +612,7 @@ public class Simulation : MonoBehaviour
             }
             float avgCoverage = totalCoverage / Ref.I.Model.data.WallfollowPaths.Count;
 
-            Ref.I.SummaryBottomLeftText.GetComponent<TextMeshProUGUI>().text = SummaryString("Wall Follow Summary: ",
+            Ref.I.SummaryBottomRightText.GetComponent<TextMeshProUGUI>().text = SummaryString("Wall Follow Summary: ",
                 Ref.I.Model.data.WallfollowPaths.Count, avgCoverage);
         }
 
