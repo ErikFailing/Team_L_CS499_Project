@@ -7,14 +7,24 @@ using TMPro;
 
 public class Run
 {
-    public int num;
     public string name;
     public string algorithm;
     public float duration;
     public float coverage;
     public List<Vector3> path;
-    public Vector3[] innerTrail;
-    public Vector3[] outerTrail;
+
+    public Run()
+    {
+
+    }
+    public Run(string alg, int index, List<Vector3> p)
+    {
+        algorithm = alg;
+        name = alg + " #" + index;
+        duration = 0.0f;
+        coverage = 0.0f;
+        path = p;
+    }
 }
 
 public class Simulation : MonoBehaviour
@@ -36,8 +46,6 @@ public class Simulation : MonoBehaviour
 
     private Gradient trailGradient;
 
-    private int maxPoints;
-
     private bool stopped;
     
     // For updating the clean percentage
@@ -48,9 +56,59 @@ public class Simulation : MonoBehaviour
         // Initialize Simulation with default values
         speed = 1.0f;
         floorType = "Hardwood";
-        maxPoints = 100000;
         Reset();
         stopped = true;
+    }
+
+    public void Load()
+    {
+        // Re-Initialize simulation with default values
+        StopCoroutine("FollowPath");
+
+        algorithmType = "Random";
+
+        pathPosition = 0;
+        runNum = 0;
+
+        paused = false;
+        pathFinished = false;
+        stopped = true;
+        autopilotFinished = true;
+
+        // Add algorithms to the Run list
+        int algsNum = 0;
+        foreach (var listWrapper in Ref.I.Model.data.RandomPaths)
+        {
+            runs.Add(new Run("Random", algsNum, listWrapper.vectorThreeList));
+            algsNum += 1;
+        }
+        foreach (var listWrapper in Ref.I.Model.data.SnakingPaths)
+        {
+            runs.Add(new Run("Snaking", algsNum, listWrapper.vectorThreeList));
+            algsNum += 1;
+        }
+        foreach (var listWrapper in Ref.I.Model.data.SpiralPaths)
+        {
+            runs.Add(new Run("Spiral", algsNum, listWrapper.vectorThreeList));
+            algsNum += 1;
+        }
+        foreach (var listWrapper in Ref.I.Model.data.WallfollowPaths)
+        {
+            runs.Add(new Run("Wall follow", algsNum, listWrapper.vectorThreeList));
+            algsNum += 1;
+        }
+
+        if (algsNum > 0) path = runs[0].path;
+        else path = null;
+
+        // Update dropdowns
+        UpdateRunDropdown();
+        Ref.I.PathingDropdown.GetComponent<TMP_Dropdown>().SetValueWithoutNotify(0);
+        Ref.I.RunDropdown.GetComponent<TMP_Dropdown>().SetValueWithoutNotify(0);
+
+        // Reset distance tracker for the coverage calculations
+        Ref.I.Model.currentDistance = 0;
+        Ref.I.Model.ResetPoints();
     }
 
     public void Reset()
@@ -72,7 +130,7 @@ public class Simulation : MonoBehaviour
         stopped = true;
 
         UpdateRunDropdown();
-        Ref.I.RunDropdown.GetComponent<TMP_Dropdown>().SetValueWithoutNotify(0);
+        Ref.I.PathingDropdown.GetComponent<TMP_Dropdown>().SetValueWithoutNotify(0);
         
         // Reset distance tracker for the coverage calculations
         Ref.I.Model.currentDistance = 0;
@@ -112,21 +170,18 @@ public class Simulation : MonoBehaviour
         }
     }
 
-    private void CreateRun()
+    private void CreateNewRun()
     {
         // When creating an instance of Run all of the properties need to be initialized
         runNum = runs.Count;
         Run run = new Run();
         runs.Add(run);
-        run.num = runNum;
         run.name = algorithmType + " #" + runNum;
         run.algorithm = algorithmType;
         run.duration = 0.0f;
         run.coverage = 0.0f;
         path = FindPath();
         run.path = path;
-        run.innerTrail = new Vector3[maxPoints];
-        run.outerTrail = new Vector3[maxPoints];
     }
 
     public List<Vector3> FindPath()
@@ -179,12 +234,12 @@ public class Simulation : MonoBehaviour
             string text = dropdown.options[dropdown.value].text;
             if (text.Contains("Auto"))
             {
-                CreateRun();
+                CreateNewRun();
             }
             else if (text.Contains("New"))
             {
                 autopilotFinished = true;
-                CreateRun();
+                CreateNewRun();
             }
             else
             {
@@ -264,9 +319,8 @@ public class Simulation : MonoBehaviour
             Ref.I.PathingDropdown.GetComponent<TMP_Dropdown>().SetValueWithoutNotify(3);
             Ref.I.RunDropdown.GetComponent<TMP_Dropdown>().SetValueWithoutNotify(3);
         }
-        CreateRun();
+        CreateNewRun();
         Ref.I.GUI.PlayButtonClick();
-        //StartSimulation();
     }
 
     public void ChangeFloorType(string type)
@@ -305,10 +359,13 @@ public class Simulation : MonoBehaviour
     {
         if (!text.Contains("Auto") && !text.Contains("New"))
         {
+            // Use old run
             runNum = Ref.I.RunDropdown.GetComponent<TMP_Dropdown>().value;
+            path = runs[runNum].path;
         }
         else
         {
+            // Create new run
             path = null;
         }
     }
@@ -318,8 +375,10 @@ public class Simulation : MonoBehaviour
         StopSimulation();
         algorithmType = algorithm;
         Ref.I.Model.ResetPoints();
+        Ref.I.Model.currentDistance = 0;
         UpdateRunDropdown();
-        Ref.I.RunDropdown.GetComponent<TMP_Dropdown>().SetValueWithoutNotify(runNum);
+        Ref.I.RunDropdown.GetComponent<TMP_Dropdown>().SetValueWithoutNotify(Ref.I.RunDropdown.GetComponent<TMP_Dropdown>().options.Count);
+        ChangeRun("New");
     }
 
     void Update()
@@ -423,10 +482,6 @@ public class Simulation : MonoBehaviour
                     if (!paused)
                     {
                         pathFinished = true;
-
-                        // Save the inner and outer trails from the vacuum
-                        vacuum.transform.GetChild(1).GetComponent<TrailRenderer>().GetPositions(runs[runNum].outerTrail);
-                        vacuum.transform.GetChild(2).GetComponent<TrailRenderer>().GetPositions(runs[runNum].innerTrail);
 
                         Ref.I.PathingDropdown.GetComponent<TMP_Dropdown>().interactable = true;
                         Ref.I.RunDropdown.GetComponent<TMP_Dropdown>().interactable = true;

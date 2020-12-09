@@ -187,7 +187,6 @@ public class GUI : MonoBehaviour
             // Valid House
             Ref.I.HousePlannerMenu.SetActive(false);
             Ref.I.HouseSimulationMenu.SetActive(true);
-            Ref.I.Model.CalculateRandomPath();
             // Create save
             string saveName = SaveSystem.CreateSaveFile(Ref.I.Model.data.name);
             SaveSystem.SaveToFile(saveName);
@@ -297,6 +296,7 @@ public class GUI : MonoBehaviour
         Ref.I.HouseSimulationMenu.SetActive(true);
         // Load Simulation
         SaveSystem.LoadSaveFile(saveName);
+        Ref.I.Simulation.Load();
 
         // Delete all current listeners
         Ref.I.LoadSaveButton.GetComponent<Button>().onClick.RemoveAllListeners();
