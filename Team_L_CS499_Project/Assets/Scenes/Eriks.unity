@@ -519,8 +519,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 390, y: -500.00357}
-  m_SizeDelta: {x: 760, y: 1000}
+  m_AnchoredPosition: {x: 390, y: -752.0035}
+  m_SizeDelta: {x: 760, y: 1500}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &27524103
 MonoBehaviour:
@@ -541,7 +541,38 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Type useful things here.
+  m_text: "<u><b>Menu Overview:\r</u></b>\nThis menu provides you the tools to run
+    a simulation of the chosen floor plan. You may create new simulation runs with
+    different pathing algorithms and be able to watch them happen at different speeds.\r\n\r\n<u><b>Simulation
+    Speed Buttons:\r</u></b>\nSelecting one of the buttons will set the speed at
+    which the simulation will visually play. The default speed is '1x' which will
+    play out in real time. The '50x' button will play the simulation at 50 times
+    the real speed and '100x' will play at 100 times the real speed. The speed can
+    be changed at any time.\r\n\r\n<u><b>Vacuum Run Selection:\r</u></b>\nClicking
+    on the selection box will make a drop down list appear of all the different simulation
+    runs that have been done. This selection is used by the simulation to decide
+    what run to use. However, the path algorithm must be changed to the same one
+    used when running past simulation runs.\r\n \r\n<u><b>Path Algorithm Selection:\r</u></b>\nClicking
+    on the selection box will make a drop down list appear of all the different pathing
+    algorithms. When you select an algorithm, it will change the current Vacuum Run
+    selection if it is currently showing the new run option. However, if a past run
+    is selected and the Path Algorithm is set to a different path then what was originally
+    used, the simulation will not run.\r\n\r\n<u><b>Play / Pause / Stop Buttons:\r</u></b>\nThese
+    three buttons are used to operate the playing of the simulation. By clicking
+    the play button, the chosen simulation in Vacuum Run will begin to play from
+    either the start or its current location. The pause button will stop the vacuum
+    and simulation wherever it is. If the play button is selected after pausing,
+    the simulation will start from\r\nwhere it was stopped. By clicking the stop
+    button, the simulation will end immediately and be reset back to the beginning.\r\n\r\n<u><b>Summary
+    Button:\r</u></b>\nBy clicking this button, it will display the current simulation
+    summary for every Vacuum Run. The information for the current simulation being
+    ran will be the only one with updated information.\r\n\r\n<u><b>Save Simulation
+    Button:\r</u></b>\nClicking this button will save the entire simulation and return
+    you to the main menu.\r\n\r\n<u><b>2D / 3D Button:\r</u></b>\nSelecting the 2D
+    button enables a top down camera view of the house. Selecting the 3D button enables
+    you to view the house in a 3D perspective and to view it from different angles
+    of your choice.\r\n\r\n<u><b>Back Button:\r</u></b>\nYou may click on this button
+    at any time to return to the main menu from anywhere in the program.\r\n"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -2018,11 +2049,11 @@ MonoBehaviour:
     m_SelectedTrigger: Selected
     m_DisabledTrigger: Disabled
   m_Interactable: 1
-  m_TargetGraphic: {fileID: 1882015302}
-  m_HandleRect: {fileID: 1882015301}
+  m_TargetGraphic: {fileID: 691259727}
+  m_HandleRect: {fileID: 691259726}
   m_Direction: 2
-  m_Value: 1.0000015
-  m_Size: 0.39
+  m_Value: 1.0000001
+  m_Size: 0.19504942
   m_NumberOfSteps: 0
   m_OnValueChanged:
     m_PersistentCalls:
@@ -4002,8 +4033,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 390, y: -500.00024}
-  m_SizeDelta: {x: 760, y: 1000}
+  m_AnchoredPosition: {x: 390, y: -200.00616}
+  m_SizeDelta: {x: 760, y: 400}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &346278166
 MonoBehaviour:
@@ -4024,20 +4055,14 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: '<b><u>Create new House Plan</u></b> takes you into the House Planner interface.
-    From there you can create a layout for a house with a robot vacuum.
-
-
-
-    <b><u>Load
-    Simulation</b></u> takes you into the Load/Save Menu. From there you can load
-    previous floor plans and re-run the robot vacuum simulation.
-
-
-
-
-    <b><u>Quit
-    Application</b></u> button closes this application.'
+  m_text: "<u><b>Project Overview:</u></b>\nThis program is intended to be used to
+    test the cleaning efficiency of a generic robot vacuum on a variety of house
+    floor plans and floor types with four different cleaning modes.\r\n\n<u><b>Create
+    New House Plan Button:\r</u></b>\nSelecting this button will take you to the
+    house floor plan designer where you can create and save a new floor plan design
+    to be used in the simulation\n\n<u><b>Load Simulation Button:\r</u></b>\nSelecting
+    this button will take you to the simulation start up menu where you can manage
+    your existing saved floor plans and launch the simulation.\r\n"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -4368,7 +4393,7 @@ RectTransform:
   m_Father: {fileID: 1291374732}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0.61}
+  m_AnchorMin: {x: 0, y: 0.0046288967}
   m_AnchorMax: {x: 1, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 20, y: 20}
@@ -4973,8 +4998,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 390, y: -500.00092}
-  m_SizeDelta: {x: 760, y: 1000}
+  m_AnchoredPosition: {x: 390, y: -1025.0002}
+  m_SizeDelta: {x: 760, y: 2050}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &383731870
 MonoBehaviour:
@@ -4995,7 +5020,47 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Type useful things here.
+  m_text: "<u><b>Menu Overview:\r</u></b>\nThis menu provides with the needed tools
+    to create your new floor plan. Once completed, you may finalize the design which
+    will automatically save the floor plan and launch the simulation of that design.\r\n\r\n<u><b>House
+    Requirements:\r</u></b>\n\t- The House must have a minimum total area of 200
+    sq/ft and a\r\n\t  maximum size of 8,000 sq/ft.\r\n\t- The floor plan MUST include
+    a vacuum object in order to be\r\n\t  saved.\r\n\t- The floor plan MUST be given
+    a name before it can be saved.\r\n\r\n<b>WARNING:</b> Deleting an object or room
+    is permanent. This means you cannot undo any deletions that happen.\r\n\r\n<u><b>Draw
+    Room Button:\r</u></b>\nAfter selecting this button, you may click and drag your
+    mouse on the ground to create a new room. All rooms beyond the first MUST be
+    connected to an already created room.\r\n\r\n<u><b>Draw Table Button:\r</u></b>\nAfter
+    selecting this button, you may click and drag your mouse anywhere within a room
+    to create a table. The vacuum is able to clean under a table.\r\n\r\n<u><b>Draw
+    Chest Button:\r</u></b>\nAfter selecting this button, you may click and drag
+    your mouse anywhere within a room to create a chest. The vacuum in NOT able to
+    clean under a chest.\r\n\r\n<u><b>Draw Door Button:\r</u></b>\nAfter selecting
+    this button, you may click and drag your mouse over any walls that separate two
+    rooms to remove the walls and create a doorway that allows the vacuum to move
+    between the two rooms.\r\n\r\n<u><b>Place Vacuum Button:\r</u></b>\nAfter selecting
+    this button, you may place the vacuum anywhere in a room where there is not already
+    another object. This will serve as the starting location for the vacuum whenever
+    it is run in the simulation.\r\n\r\n<u><b>Delete Object Button:\r</u></b>\nAfter
+    selecting this button, you may click on any object or room to delete. If you
+    delete a room, then you will also delete any any other objects that are also
+    in the room. All deletions are final and cannot be undone.\r\n\r\n<u><b>Floor
+    Type Selection:\r</u></b>\nClicking on this option will display a drop down list
+    that allows you to select and change the type of flooring in your floor plan.
+    The floor type you select will be used in every room of the current design.\r\n\r\n<u><b>Plan
+    Name Text Box:\r</u></b>\nYou may enter whatever you choose to name your floor
+    plan here. This will be the name used on the save file and will be what you use
+    to locate the floor plan design in the Load Simulation Menu. If you enter a name
+    that has already been used before, the program will add a ('_x') to the end of
+    the name where 'x' is a number based on how many previous floor plans used the
+    same name.\r\n\r\n<u><b>Finalize Design Button:\r</u></b>\nSelecting this button
+    will save the house floor plan as long as all the basic requirements for the
+    design have been met. After saving, it will then launch the Simulation for the
+    newly saved floor plan.\r\n\r\n<u><b>2D / 3D Button:\r</u></b>\nSelecting the
+    2D button enables a top down camera view of the house. Selecting the 3D button
+    enables you to view the house in a 3D perspective and to view it from different
+    angles of your choice.\r\n\r\n<u><b>Back Button:\r</u></b>\nYou may click on
+    this button at any time to return to the main menu from anywhere in the program.\r\n"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -6925,8 +6990,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 390, y: -500.00024}
-  m_SizeDelta: {x: 760, y: 1000}
+  m_AnchoredPosition: {x: 390, y: -300.00018}
+  m_SizeDelta: {x: 760, y: 600}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &579342694
 MonoBehaviour:
@@ -6947,7 +7012,17 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Type useful things here.
+  m_text: "<u><b>Menu Overview:\r</u></b>\nThis menu provides you with the tools
+    to manage your floor plan designs, access past simulation data and to launch
+    the simulation for a selected file.\r\n\r\n<u><b>Open Database Folder Button:\r</u></b>\nAfter
+    selecting one of the saved floor plan designs, you may click on this button to
+    access the data from past simulations of that particular floor plan.\r\n\r\n<u><b>Load
+    Simulation Button:\r</u></b>\nAfter selecting one of the saved floor plan designs,
+    you may click on this button to launch a simulation of the chosen floor plan.\r\n\r\n<u><b>Delete
+    Simulation Button:\r</u></b>\nAfter selecting one of the saved floor plan designs,
+    you may click on this button to delete the selected floor plan and all of its
+    data files.\r\n\r\n<u><b>Back Button:\r</u></b>\nYou may click on this button
+    at any time to return to the main menu from anywhere in the program.\r"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -8487,8 +8562,8 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 365159368}
   m_HandleRect: {fileID: 365159367}
   m_Direction: 2
-  m_Value: 1.0000004
-  m_Size: 0.39
+  m_Value: 1
+  m_Size: 0.9953711
   m_NumberOfSteps: 0
   m_OnValueChanged:
     m_PersistentCalls:
@@ -8815,6 +8890,80 @@ RectTransform:
   m_AnchoredPosition: {x: 200, y: -255}
   m_SizeDelta: {x: 380, y: 400}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!1 &691259725
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 691259726}
+  - component: {fileID: 691259728}
+  - component: {fileID: 691259727}
+  m_Layer: 5
+  m_Name: Handle
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &691259726
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 691259725}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 1404731619}
+  m_RootOrder: 0
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0, y: 0.8049506}
+  m_AnchorMax: {x: 1, y: 1}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 20, y: 20}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &691259727
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 691259725}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Material: {fileID: 0}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_RaycastTarget: 1
+  m_Maskable: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  m_Sprite: {fileID: 10905, guid: 0000000000000000f000000000000000, type: 0}
+  m_Type: 1
+  m_PreserveAspect: 0
+  m_FillCenter: 1
+  m_FillMethod: 4
+  m_FillAmount: 1
+  m_FillClockwise: 1
+  m_FillOrigin: 0
+  m_UseSpriteMesh: 0
+  m_PixelsPerUnitMultiplier: 1
+--- !u!222 &691259728
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 691259725}
+  m_CullTransparentMesh: 0
 --- !u!1 &705507993
 GameObject:
   m_ObjectHideFlags: 0
@@ -12779,7 +12928,7 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1421068182}
   m_HandleRect: {fileID: 1421068181}
   m_Direction: 2
-  m_Value: 1
+  m_Value: 0
   m_Size: 1
   m_NumberOfSteps: 0
   m_OnValueChanged:
@@ -13760,8 +13909,8 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1986191456}
   m_HandleRect: {fileID: 1986191455}
   m_Direction: 2
-  m_Value: 1.0000004
-  m_Size: 0.39
+  m_Value: 1.000001
+  m_Size: 0.6638677
   m_NumberOfSteps: 0
   m_OnValueChanged:
     m_PersistentCalls:
@@ -15420,7 +15569,7 @@ RectTransform:
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
-  - {fileID: 1882015301}
+  - {fileID: 691259726}
   m_Father: {fileID: 110961634}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -15621,7 +15770,7 @@ RectTransform:
   m_Father: {fileID: 320648014}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0.61}
+  m_AnchorMin: {x: 0, y: 0.73693156}
   m_AnchorMax: {x: 1, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 20, y: 20}
@@ -18261,8 +18410,8 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1432106347}
   m_HandleRect: {fileID: 1432106346}
   m_Direction: 2
-  m_Value: 1.0000058
-  m_Size: 0.39
+  m_Value: 1.0018213
+  m_Size: 0.2630684
   m_NumberOfSteps: 0
   m_OnValueChanged:
     m_PersistentCalls:
@@ -20678,80 +20827,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1863046451}
   m_CullTransparentMesh: 0
---- !u!1 &1882015300
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1882015301}
-  - component: {fileID: 1882015303}
-  - component: {fileID: 1882015302}
-  m_Layer: 5
-  m_Name: Handle
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!224 &1882015301
-RectTransform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1882015300}
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_Children: []
-  m_Father: {fileID: 1404731619}
-  m_RootOrder: 0
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0.61}
-  m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 20, y: 20}
-  m_Pivot: {x: 0.5, y: 0.5}
---- !u!114 &1882015302
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1882015300}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_RaycastTarget: 1
-  m_Maskable: 1
-  m_OnCullStateChanged:
-    m_PersistentCalls:
-      m_Calls: []
-  m_Sprite: {fileID: 10905, guid: 0000000000000000f000000000000000, type: 0}
-  m_Type: 1
-  m_PreserveAspect: 0
-  m_FillCenter: 1
-  m_FillMethod: 4
-  m_FillAmount: 1
-  m_FillClockwise: 1
-  m_FillOrigin: 0
-  m_UseSpriteMesh: 0
-  m_PixelsPerUnitMultiplier: 1
---- !u!222 &1882015303
-CanvasRenderer:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1882015300}
-  m_CullTransparentMesh: 0
 --- !u!1 &1884095704
 GameObject:
   m_ObjectHideFlags: 0
@@ -21653,7 +21728,7 @@ RectTransform:
   m_Father: {fileID: 663145531}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0.61}
+  m_AnchorMin: {x: 0, y: 0.3361323}
   m_AnchorMax: {x: 1, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 20, y: 20}
