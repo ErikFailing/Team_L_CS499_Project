@@ -275,6 +275,7 @@ public class GUI : MonoBehaviour
 
     public void SummaryButtonClick()
     {
+        Ref.I.Simulation.UpdateSummaryOverlay();
         OverlayToggle(Ref.I.SummaryOverlay);
     }
 

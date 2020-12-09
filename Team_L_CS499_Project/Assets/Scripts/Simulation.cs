@@ -10,19 +10,21 @@ public class Run
     public string name;
     public string algorithm;
     public float duration;
-    public float coverage;
+    public float currentCoverage;
+    public float finishedCoverage;
     public List<Vector3> path;
 
     public Run()
     {
-
+        finishedCoverage = 0;
     }
     public Run(string alg, int index, List<Vector3> p)
     {
         algorithm = alg;
         name = alg + " #" + index;
         duration = 0.0f;
-        coverage = 0.0f;
+        currentCoverage = 0.0f;
+        finishedCoverage = 0;
         path = p;
     }
 }
@@ -58,6 +60,25 @@ public class Simulation : MonoBehaviour
         floorType = "Hardwood";
         Reset();
         stopped = true;
+    }
+
+    public void CalculateFinishedCoverages()
+    {
+        int initialRunNum = runNum;
+        for (int i =0; i < runs.Count; i++)
+        {
+            if (runs[i].finishedCoverage == 0)
+            {
+                runNum = i;
+                Ref.I.Model.CalculateCleanliness(26999);
+                runs[i].finishedCoverage = Ref.I.Model.CalculateCoveragePercentage();
+                // Reset distance tracker for the coverage calculations
+                Ref.I.Model.currentDistance = 0;
+                Ref.I.Model.ResetPoints();
+            }
+        }
+        runNum = initialRunNum;
+        
     }
 
     public void Load()
@@ -179,7 +200,7 @@ public class Simulation : MonoBehaviour
         run.name = algorithmType + " #" + runNum;
         run.algorithm = algorithmType;
         run.duration = 0.0f;
-        run.coverage = 0.0f;
+        run.currentCoverage = 0.0f;
         path = FindPath();
         run.path = path;
     }
@@ -284,7 +305,7 @@ public class Simulation : MonoBehaviour
             if (!pathFinished)
             {
                 runs[runNum].duration = 0.0f;
-                runs[runNum].coverage = 0.0f;
+                runs[runNum].currentCoverage = 0.0f;
             }
             vacuum.transform.position = path[pathPosition];
             vacuum.transform.GetChild(1).GetComponent<TrailRenderer>().Clear();
@@ -394,55 +415,22 @@ public class Simulation : MonoBehaviour
                 // Call your fonction
                 // Also need to retrieve the value here, not just calculate it
                 
-                runs[runNum].coverage = Ref.I.Model.CalculateCoveragePercentage();
+                runs[runNum].currentCoverage = Ref.I.Model.CalculateCoveragePercentage();
             }
             Ref.I.Model.CalculateCleanliness(Mathf.FloorToInt(runs[runNum].duration * 3));
         }
-        //else if ()
         // GUI
         if (runs.Count > 0) {
             Ref.I.SimFloorTypeText.GetComponent<TextMeshProUGUI>().text = FloorTypeString();
             Ref.I.SimCoverageText.GetComponent<TextMeshProUGUI>().text = CoverageString();
             Ref.I.SimDurationText.GetComponent<TextMeshProUGUI>().text = DurationString();
             Ref.I.SimRemainingText.GetComponent<TextMeshProUGUI>().text = BatteryString();
-            Ref.I.SummaryTopLeftText.GetComponent<TextMeshProUGUI>().text = SummaryString(runs.Count - 1);
 
-            if (runs.Count > 1)
-            {
-                Ref.I.SummaryTopRightText.GetComponent<TextMeshProUGUI>().text = SummaryString(runs.Count - 2);
-            }
-            else
-            {
-                Ref.I.SummaryTopRightText.GetComponent<TextMeshProUGUI>().text = "";
-            }
-
-            if (runs.Count > 2)
-            {
-                Ref.I.SummaryBottomLeftText.GetComponent<TextMeshProUGUI>().text = SummaryString(runs.Count - 3);
-            }
-            else
-            {
-                Ref.I.SummaryBottomLeftText.GetComponent<TextMeshProUGUI>().text = "";
-            }
-
-            if (runs.Count > 3)
-            { 
-                Ref.I.SummaryBottomRightText.GetComponent<TextMeshProUGUI>().text = SummaryString(runs.Count - 4);
-            }
-            else
-            {
-                Ref.I.SummaryBottomRightText.GetComponent<TextMeshProUGUI>().text = "";
-            }
-        }
-        else
-        {
-            Ref.I.SummaryTopLeftText.GetComponent<TextMeshProUGUI>().text = "Start a Run to see the summary.";
-            Ref.I.SummaryTopRightText.GetComponent<TextMeshProUGUI>().text = "";
-            Ref.I.SummaryBottomLeftText.GetComponent<TextMeshProUGUI>().text = "";
-            Ref.I.SummaryBottomRightText.GetComponent<TextMeshProUGUI>().text = "";
+            
         }
     }
 
+    
     
 
     public IEnumerator FollowPath()
@@ -512,7 +500,7 @@ public class Simulation : MonoBehaviour
     {
         StringBuilder sb = new StringBuilder();
         sb.Append("Coverage: ");
-        sb.Append(runs[runNum].coverage.ToString("0.00%"));
+        sb.Append(runs[runNum].currentCoverage.ToString("0.00%"));
         return sb.ToString();
     }
 
@@ -555,21 +543,94 @@ public class Simulation : MonoBehaviour
         return sb.ToString();
     }
 
-    private string SummaryString(int num)
+
+
+    public void UpdateSummaryOverlay()
+    {
+        CalculateFinishedCoverages();
+        
+        
+        Ref.I.SummaryTopLeftText.GetComponent<TextMeshProUGUI>().text = "Run one or more RANDOM simulations to recieve a results summary.";
+        Ref.I.SummaryTopRightText.GetComponent<TextMeshProUGUI>().text = "Run one or more SPIRAL simulations to recieve a results summary.";
+        Ref.I.SummaryBottomLeftText.GetComponent<TextMeshProUGUI>().text = "Run one or more SNAKING simulations to recieve a results summary.";
+        Ref.I.SummaryBottomRightText.GetComponent<TextMeshProUGUI>().text = "Run one or more WALL FOLLOW simulations to recieve a results summary.";
+
+        if (Ref.I.Model.data.RandomPaths.Count > 0)
+        {
+            float totalCoverage = 0;
+            foreach (Run r in runs)
+            {
+                if (r.algorithm == "Random")
+                {
+                    totalCoverage += r.finishedCoverage;
+                }
+            }
+            float avgCoverage = totalCoverage / Ref.I.Model.data.RandomPaths.Count;
+
+            Ref.I.SummaryTopLeftText.GetComponent<TextMeshProUGUI>().text = SummaryString("Random Summary: ",
+                Ref.I.Model.data.RandomPaths.Count, avgCoverage);
+        }
+        if (Ref.I.Model.data.SpiralPaths.Count > 0)
+        {
+            float totalCoverage = 0;
+            foreach (Run r in runs)
+            {
+                if (r.algorithm == "Spiral")
+                {
+                    totalCoverage += r.finishedCoverage;
+                }
+            }
+            float avgCoverage = totalCoverage / Ref.I.Model.data.SpiralPaths.Count;
+
+            Ref.I.SummaryTopRightText.GetComponent<TextMeshProUGUI>().text = SummaryString("Spiral Summary: ",
+                Ref.I.Model.data.SpiralPaths.Count, avgCoverage);
+        }
+        if (Ref.I.Model.data.SnakingPaths.Count > 0)
+        {
+            float totalCoverage = 0;
+            foreach (Run r in runs)
+            {
+                if (r.algorithm == "Snaking")
+                {
+                    totalCoverage += r.finishedCoverage;
+                }
+            }
+            float avgCoverage = totalCoverage / Ref.I.Model.data.SnakingPaths.Count;
+
+            Ref.I.SummaryBottomLeftText.GetComponent<TextMeshProUGUI>().text = SummaryString("Snaking Summary: ",
+                Ref.I.Model.data.SnakingPaths.Count, avgCoverage);
+        }
+        if (Ref.I.Model.data.WallfollowPaths.Count > 0)
+        {
+            float totalCoverage = 0;
+            foreach (Run r in runs)
+            {
+                if (r.algorithm == "Wall follow")
+                {
+                    totalCoverage += r.finishedCoverage;
+                }
+            }
+            float avgCoverage = totalCoverage / Ref.I.Model.data.WallfollowPaths.Count;
+
+            Ref.I.SummaryBottomLeftText.GetComponent<TextMeshProUGUI>().text = SummaryString("Wall Follow Summary: ",
+                Ref.I.Model.data.WallfollowPaths.Count, avgCoverage);
+        }
+
+    }
+
+
+    private string SummaryString(string type, int numberOfRuns, float avgCoverage)
     {
         StringBuilder sb = new StringBuilder();
         sb.Append("<u><b>");
-        sb.Append(runs[num].name);
+        sb.Append(type);
         sb.AppendLine("</u></b>");
-        sb.Append("Algorithm: ");
-        sb.AppendLine(runs[num].algorithm);
-        sb.Append("Duration: ");
-        sb.AppendLine(DurationFormat(runs[num].duration));
-        sb.Append("Battery Remaining: ");
-        sb.Append(RemainingBattery(runs[num].duration));
-        sb.AppendLine(" Minutes");
-        sb.Append("Coverage: ");
-        sb.Append(runs[num].coverage.ToString("0.00%"));
+        sb.Append("Total Run Time: ");
+        sb.AppendLine(DurationFormat(numberOfRuns * 150 * 60));
+        sb.Append("Average Coverage: ");
+        sb.AppendLine(avgCoverage.ToString("0.00%"));
+        sb.Append("Runs: ");
+        sb.AppendLine(numberOfRuns.ToString());
         return sb.ToString();
     }
 }
