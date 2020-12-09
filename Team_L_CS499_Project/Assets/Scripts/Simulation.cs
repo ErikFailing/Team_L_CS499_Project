@@ -105,14 +105,14 @@ public class Simulation : MonoBehaviour
         dropdown.AddOptions(options);
         if (!autopilotFinished && pathFinished)
         {
-            // I don't think this is working
+            // I don't think this is not working
             dropdown.SetValueWithoutNotify(options.Count - 2);
         } else {
             dropdown.SetValueWithoutNotify(prevValue);
         }
     }
 
-    private void CreateRun(List<Vector3> loadedPath)
+    private void CreateRun()
     {
         // When creating an instance of Run all of the properties need to be initialized
         runNum = runs.Count;
@@ -123,14 +123,7 @@ public class Simulation : MonoBehaviour
         run.algorithm = algorithmType;
         run.duration = 0.0f;
         run.coverage = 0.0f;
-        if (loadedPath != null)
-        {
-            path = loadedPath;
-        }
-        else
-        {
-            path = FindPath();
-        }
+        path = FindPath();
         run.path = path;
         run.innerTrail = new Vector3[maxPoints];
         run.outerTrail = new Vector3[maxPoints];
@@ -186,12 +179,12 @@ public class Simulation : MonoBehaviour
             string text = dropdown.options[dropdown.value].text;
             if (text.Contains("Auto"))
             {
-                CreateRun(null);
+                CreateRun();
             }
             else if (text.Contains("New"))
             {
                 autopilotFinished = true;
-                CreateRun(null);
+                CreateRun();
             }
             else
             {
@@ -271,40 +264,9 @@ public class Simulation : MonoBehaviour
             Ref.I.PathingDropdown.GetComponent<TMP_Dropdown>().SetValueWithoutNotify(3);
             Ref.I.RunDropdown.GetComponent<TMP_Dropdown>().SetValueWithoutNotify(3);
         }
-        CreateRun(null);
-        UpdateRunDropdown();
+        CreateRun();
         Ref.I.GUI.PlayButtonClick();
         //StartSimulation();
-    }
-
-    public void PopulateRunsFromLoad()
-    {
-        int i;
-        int tempRun = 0;
-        for (i = 0; i < Ref.I.Model.data.RandomPaths.Count; i++)
-        {
-            algorithmType = "Random";
-            CreateRun(Ref.I.Model.data.RandomPaths[i].vectorThreeList);
-            tempRun++;
-        }
-        for (i = 0; i < Ref.I.Model.data.SpiralPaths.Count; i++)
-        {
-            algorithmType = "Spiral";
-            CreateRun(Ref.I.Model.data.SpiralPaths[i].vectorThreeList);
-            tempRun++;
-        }
-        for (i = 0; i < Ref.I.Model.data.SnakingPaths.Count; i++)
-        {
-            algorithmType = "Snaking";
-            CreateRun(Ref.I.Model.data.SnakingPaths[i].vectorThreeList);
-            tempRun++;
-        }
-        for (i = 0; i < Ref.I.Model.data.WallfollowPaths.Count; i++)
-        {
-            algorithmType = "Wall follow";
-            CreateRun(Ref.I.Model.data.WallfollowPaths[i].vectorThreeList);
-            tempRun++;
-        }
     }
 
     public void ChangeFloorType(string type)

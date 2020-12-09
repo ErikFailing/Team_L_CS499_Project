@@ -298,8 +298,6 @@ public class GUI : MonoBehaviour
         // Load Simulation
         SaveSystem.LoadSaveFile(saveName);
 
-        Ref.I.Simulation.PopulateRunsFromLoad();
-
         // Delete all current listeners
         Ref.I.LoadSaveButton.GetComponent<Button>().onClick.RemoveAllListeners();
         Ref.I.DeleteSaveButton.GetComponent<Button>().onClick.RemoveAllListeners();
